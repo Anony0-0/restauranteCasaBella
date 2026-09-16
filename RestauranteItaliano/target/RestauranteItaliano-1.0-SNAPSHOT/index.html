@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Casa Bella — Cucina Italiana</title>
+  <meta name="description" content="Casa Bella: cozinha italiana autêntica, carta de vinhos selecionada e ambiente intimista." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+
+<a class="visually-hidden" href="#conteudo-principal">Pular para o conteúdo principal</a>
+
+<!-- ============ CABEÇALHO ============ -->
+<header class="site-header">
+  <div class="container">
+    <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox" />
+    <label for="nav-toggle" class="nav-toggle">
+      <span></span><span></span><span></span>
+      <span class="visually-hidden">Abrir menu de navegação</span>
+    </label>
+
+    <a href="#conteudo-principal" class="brand">
+      <span class="brand-mark">Casa <em>Bella</em></span>
+      <span class="brand-sub">CUCINA ITALIANA</span>
+    </a>
+
+
+    <nav class="primary-nav" aria-label="Navegação principal">
+      <ul>
+        <li><a href="#inicio">Início</a></li>
+        <li><a href="#sabores">Sabores</a></li>
+        <li><a href="#ambiente">Ambiente</a></li>
+        <li><a href="#contato">Contato</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="header-actions">
+    <a href="login.html" class="avatar-button" aria-label="Entrar na sua conta">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="3.6"></circle>
+        <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"></path>
+      </svg>
+    </a>
+  </div>
+
+</header>
+
+
+
+
+<main id="conteudo-principal">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="inicio" aria-label="Apresentação">
+    <div class="container hero-content">
+      <h1 class="hero-title">Sinta-se em casa,<em>à moda italiana.</em></h1>
+      <p class="hero-lead">Massas frescas, pães de forno a lenha e uma carta de vinhos que atravessa a Itália de norte a sul — em um salão pensado para conversas longas.</p>
+    </div>
+  </section>
+
+  <!-- ============ FAIXA DE AÇÃO: CARDÁPIO / RESERVA ============ -->
+  <section class="action-band" aria-label="Ações rápidas">
+    <div class="container">
+      <div class="action-card">
+        <div class="action-card-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3v18M6 3c-1.7 0-3 1.6-3 3.5S4.3 10 6 10M18 3v18M18 3c1.7 3 1.7 7 0 10"></path>
+          </svg>
+          <div>
+            <p class="action-card-title">Ver cardápio</p>
+            <p class="action-card-text">Pratos, entradas e a carta de vinhos completa</p>
+          </div>
+        </div>
+        <a href="cardapio.html" class="btn btn-outline">Abrir cardápio</a>
+      </div>
+
+      <div class="rule-vertical" aria-hidden="true"></div>
+
+      <div class="action-card">
+        <div class="action-card-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="16" rx="1.5"></rect>
+            <path d="M3 10h18M8 3v4M16 3v4"></path>
+          </svg>
+          <div>
+            <p class="action-card-title">Reservar mesa</p>
+            <p class="action-card-text">Escolha o dia, o horário e o número de convidados</p>
+          </div>
+        </div>
+        <a href="reservas.html" class="btn btn-primary">Reservar agora</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SABORES / GALERIA ============ -->
+  <section class="gallery" id="sabores" aria-label="Sabores da casa">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow-mark">Sabores da casa</span>
+        <h2 class="section-title">Pratos que atravessam gerações</h2>
+      </div>
+
+      <div class="gallery-grid">
+        <figure class="gallery-item is-large">
+          <img src="https://picsum.photos/seed/casabella-tagliatelle/1000/1000" alt="Tagliatelle ao ragù bolonhês servido em prato de cerâmica escura" />
+          <figcaption class="gallery-caption">
+            <p>Tagliatelle al Ragù</p>
+          </figcaption>
+        </figure>
+
+        <figure class="gallery-item is-small">
+          <img src="https://picsum.photos/seed/casabella-pizza/700/500" alt="Pizza margherita assada em forno a lenha" />
+          <figcaption class="gallery-caption">
+            <p>Pizza Margherita</p>
+          </figcaption>
+        </figure>
+
+        <figure class="gallery-item is-small">
+          <img src="https://picsum.photos/seed/casabella-risotto/700/500" alt="Risoto de cogumelos porcini finalizado com parmesão" />
+          <figcaption class="gallery-caption">
+            <p>Risotto ai Funghi</p>
+          </figcaption>
+        </figure>
+
+        <figure class="gallery-item is-small">
+          <img src="https://picsum.photos/seed/casabella-tiramisu/700/500" alt="Taça de tiramisù polvilhada com cacau" />
+          <figcaption class="gallery-caption">
+            <p>Tiramisù della Nonna</p>
+          </figcaption>
+        </figure>
+
+        <figure class="gallery-item is-small">
+          <img src="https://picsum.photos/seed/casabella-vinho/700/500" alt="Taças de vinho tinto sobre a mesa do salão" />
+          <figcaption class="gallery-caption">
+            <p>Carta de vinhos</p>
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SERVIÇO E AMBIENTE ============ -->
+  <section class="ambiance" id="ambiente" aria-label="Serviço e ambiente">
+    <div class="container">
+      <figure class="ambiance-figure">
+        <img src="https://picsum.photos/seed/casabella-salao/1000/700" alt="Salão do restaurante com iluminação de velas e mesas de madeira" />
+      </figure>
+      <div class="ambiance-body">
+        <span class="eyebrow-mark">Serviço e ambiente</span>
+        <h2 class="section-title">Um salão para ficar mais tempo do que o planejado</h2>
+        <p>
+          Luz baixa, velas na mesa e um serviço que conhece a carta de cor — nossa equipe está
+          ali para sugerir o vinho certo para o seu prato, não para apressar a noite.
+          Recebemos jantares a dois, celebrações em grupo e eventos privados na nossa
+          sala reservada.
+        </p>
+
+        <dl class="stats-row">
+          <div class="stat">
+            <dt>37</dt>
+            <dd>anos de tradição</dd>
+          </div>
+          <div class="stat">
+            <dt>68</dt>
+            <dd>rótulos de vinho</dd>
+          </div>
+          <div class="stat">
+            <dt>22</dt>
+            <dd>pratos autorais</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DEPOIMENTO ============ -->
+  <section class="testimonial" aria-label="Depoimento de cliente">
+    <div class="container">
+      <span class="eyebrow-mark" style="justify-content:center;">O que dizem de nós</span>
+      <blockquote>
+        "É o tipo de lugar onde o tempo passa devagar de propósito — e o tiramisù
+        sozinho já valeria a viagem."
+      </blockquote>
+      <cite>— Renata Prado, crítica gastronômica</cite>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ RODAPÉ ============ -->
+<footer class="site-footer" id="contato">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <span class="brand-mark">Casa <em>Bella</em></span>
+      <p>Cozinha italiana autêntica, carta de vinhos selecionada e um salão para celebrar
+        o essencial: boa comida e boa companhia.</p>
+    </div>
+
+    <div class="footer-col">
+      <h3>Endereço</h3>
+      <address>
+        Rua dos Jasmins, 214<br />
+        Jardim Europa — São Paulo, SP<br />
+        CEP 01449-000
+      </address>
+    </div>
+
+    <div class="footer-col">
+      <h3>Contato</h3>
+      <ul>
+        <li><a href="tel:+551130405060">(11) 3040-5060</a></li>
+        <li><a href="mailto:ola@casabella.com.br">ola@casabella.com.br</a></li>
+      </ul>
+      <div class="social-row">
+        <a href="#" aria-label="Instagram da Casa Bella">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg>
+        </a>
+        <a href="#" aria-label="Facebook da Casa Bella">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M14 9h3V6h-3c-2 0-3.5 1.5-3.5 3.5V12H8v3h2.5v6h3v-6H16l.5-3h-3V9.7c0-.4.3-.7.7-.7z"></path></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h3>Horário</h3>
+      <ul>
+        <li>Ter a sex — 18h às 23h30</li>
+        <li>Sáb e dom — 12h às 23h30</li>
+        <li>Segunda — fechado</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>© 2026 Casa Bella. Todos os direitos reservados.</p>
+    <p>Projeto acadêmico — desenvolvido para fins de estudo.</p>
+  </div>
+</footer>
+
+</body>
+</html>
