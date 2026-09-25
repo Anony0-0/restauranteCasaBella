@@ -31,6 +31,14 @@
         </a>
 
         <div class="header-actions">
+            <nav class="primary-nav" aria-label="Navegação principal">
+                <ul>
+                    <li><a href="index.html#inicio">Início</a></li>
+                    <li><a href="index.html#sabores">Sabores</a></li>
+                    <li><a href="index.html#ambiente">Ambiente</a></li>
+                    <li><a href="index.html#contato">Contato</a></li>
+                </ul>
+            </nav>
             <a href="login.html" class="avatar-button" aria-label="Entrar na sua conta">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="3.6"></circle>
@@ -39,14 +47,7 @@
             </a>
         </div>
 
-        <nav class="primary-nav" aria-label="Navegação principal">
-            <ul>
-                <li><a href="index.html#inicio">Início</a></li>
-                <li><a href="index.html#sabores">Sabores</a></li>
-                <li><a href="index.html#ambiente">Ambiente</a></li>
-                <li><a href="index.html#contato">Contato</a></li>
-            </ul>
-        </nav>
+
     </div>
 </header>
 
@@ -64,7 +65,7 @@
                 <h1 class="section-title">Entrar na sua conta</h1>
                 <p class="auth-lead">Acompanhe suas reservas e receba promoções da Casa Bella.</p>
 
-                <form class="auth-form" action="#" method="post">
+                <div class="auth-form"><!-- mudar de div para form, action="index.jsp"  method="get"--> <!--lembrar de mudar aqui depois-->
                     <div class="field">
                         <label for="usuario">Usuário</label>
                         <input type="text" id="usuario" name="usuario" placeholder="seu nome de usuário" autocomplete="username" required />
@@ -80,11 +81,11 @@
                             <input type="checkbox" name="lembrar" />
                             Lembrar de mim
                         </label>
-                        <a href="#" class="link-gold">Esqueceu a senha?</a>
+                        <a href="gerenciamento.html" class="link-gold">Esqueceu a senha?</a> <!-- mudar o href daqui depois para conectar com banco-->
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-block">Entrar</button>
-                </form>
+                    <a href="gerenciamento.html" class="btn btn-primary btn-block">Entrar </a><!-- type="submit" depois-->
+                </div>
 
                 <p class="auth-switch">
                     Ainda não tem uma conta?
