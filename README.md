@@ -5,5 +5,3 @@ Projeto extensivo de Faculdade
 Autores:
 
 
-Linguagens utilizadas:
-
