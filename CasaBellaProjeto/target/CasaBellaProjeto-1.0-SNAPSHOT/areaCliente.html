@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Área do cliente — Casa Bella</title>
+    <meta name="description" content="Acompanhe suas reservas e pedidos na Casa Bella." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+
+<a class="visually-hidden" href="#conteudo-principal">Pular para o conteúdo principal</a>
+
+<!-- ============ CABEÇALHO ============ -->
+<header class="site-header">
+    <div class="container">
+        <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox" />
+        <label for="nav-toggle" class="nav-toggle">
+            <span></span><span></span><span></span>
+            <span class="visually-hidden">Abrir menu de navegação</span>
+        </label>
+
+        <a href="index.html" class="brand">
+            <span class="brand-mark">Casa <em>Bella</em></span>
+            <span class="brand-sub">CUCINA ITALIANA</span>
+        </a>
+
+        <div class="header-actions">
+            <nav class="primary-nav" aria-label="Navegação principal">
+                <ul>
+                    <li><a href="index.html#inicio">Início</a></li>
+                    <li><a href="index.html#sabores">Sabores</a></li>
+                    <li><a href="index.html#ambiente">Ambiente</a></li>
+                    <li><a href="index.html#contato">Contato</a></li>
+                </ul>
+            </nav>
+            <a href="area-cliente.html" class="avatar-button" aria-label="Minha área">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="3.6"></circle>
+                    <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+</header>
+
+<main id="conteudo-principal">
+
+    <!--
+      Todos os dados desta página são exemplo (fixos no HTML). Quando o
+      back-end existir, o nome, a próxima reserva e as linhas das tabelas
+      vão ser preenchidos pelo JSP com os dados do cliente logado.
+
+      As abas funcionam só com CSS: os radios abaixo precisam ficar no mesmo
+      nível (irmãos) do <div class="account-body">.
+    -->
+    <section class="account" aria-label="Área do cliente">
+        <div class="container">
+
+            <input type="radio" name="account-tab" id="acc-reservas" class="account-radio" checked />
+            <input type="radio" name="account-tab" id="acc-pedidos" class="account-radio" />
+            <input type="radio" name="account-tab" id="acc-dados" class="account-radio" />
+
+            <!-- Cabeçalho da página -->
+            <div class="account-head">
+                <div>
+                    <span class="eyebrow-mark">Área do cliente</span>
+                    <h1>Olá, Renata</h1>
+                    <p class="account-sub">Aqui você acompanha suas reservas e os pedidos feitos no seu nome.</p>
+                </div>
+                <div class="account-head-actions">
+                    <a href="reservas.html" class="btn btn-primary">Nova reserva</a>
+                    <a href="login.html" class="link-gold">Sair</a>
+                </div>
+            </div>
+
+            <!-- Destaque: próxima reserva -->
+            <div class="next-reservation">
+                <div class="next-reservation-date">
+                    <span class="next-reservation-day">31</span>
+                    <span class="next-reservation-month">out</span>
+                </div>
+
+                <div>
+                    <span class="eyebrow-mark">Sua próxima reserva</span>
+                    <p class="next-reservation-title">Sábado, às 20h00</p>
+                    <p class="next-reservation-meta">4 pessoas, salão principal</p>
+                </div>
+
+                <div class="next-reservation-actions">
+                    <span class="status-pill is-confirmada">Confirmada</span>
+                    <a href="#" class="chip-btn">Ver detalhes</a>
+                    <a href="#" class="chip-btn">Cancelar</a>
+                </div>
+            </div>
+
+            <!-- Abas -->
+            <div class="account-body">
+                <div class="account-tabs">
+                    <label for="acc-reservas">Minhas reservas</label>
+                    <label for="acc-pedidos">Meus pedidos</label>
+                    <label for="acc-dados">Meus dados</label>
+                </div>
+
+                <!-- ========== RESERVAS ========== -->
+                <div class="account-panel" id="acc-panel-reservas">
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Pessoas</th>
+                                <th>Ambiente</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>31/10/2026</td>
+                                <td>20h00</td>
+                                <td>4</td>
+                                <td>Salão principal</td>
+                                <td><span class="status-pill is-confirmada">Confirmada</span></td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <tr>
+                                <td>14/11/2026</td>
+                                <td>13h00</td>
+                                <td>2</td>
+                                <td>Varanda</td>
+                                <td><span class="status-pill is-pendente">Pendente</span></td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <tr>
+                                <td>12/09/2026</td>
+                                <td>20h30</td>
+                                <td>3</td>
+                                <td>Salão principal</td>
+                                <td><span class="status-pill is-realizada">Realizada</span></td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <tr>
+                                <td>20/07/2026</td>
+                                <td>19h30</td>
+                                <td>2</td>
+                                <td>Salão principal</td>
+                                <td><span class="status-pill is-realizada">Realizada</span></td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <tr>
+                                <td>03/06/2026</td>
+                                <td>21h00</td>
+                                <td>6</td>
+                                <td>Sala reservada</td>
+                                <td><span class="status-pill is-cancelada">Cancelada</span></td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ========== PEDIDOS ========== -->
+                <div class="account-panel" id="acc-panel-pedidos">
+                    <div class="admin-table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Data</th>
+                                <th>Itens</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>#1042</td>
+                                <td>24/09/2026</td>
+                                <td>Tagliatelle al Ragù, Risotto ai Funghi, Tiramisù</td>
+                                <td><span class="status-pill is-concluido">Concluído</span></td>
+                                <td>R$ 187,00</td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <tr>
+                                <td>#1018</td>
+                                <td>12/09/2026</td>
+                                <td>Pizza Margherita, Taça de vinho tinto</td>
+                                <td><span class="status-pill is-concluido">Concluído</span></td>
+                                <td>R$ 142,50</td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <tr>
+                                <td>#0977</td>
+                                <td>20/07/2026</td>
+                                <td>Tagliatelle al Ragù, Tiramisù</td>
+                                <td><span class="status-pill is-concluido">Concluído</span></td>
+                                <td>R$ 98,00</td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ========== MEUS DADOS (somente visualização) ========== -->
+                <div class="account-panel" id="acc-panel-dados">
+                    <dl class="profile-list">
+                        <div>
+                            <dt>Nome</dt>
+                            <dd>Renata Prado</dd>
+                        </div>
+                        <div>
+                            <dt>Usuário</dt>
+                            <dd>renata.prado</dd>
+                        </div>
+                        <div>
+                            <dt>E-mail</dt>
+                            <dd>renata.prado@email.com</dd>
+                        </div>
+                        <div>
+                            <dt>Telefone</dt>
+                            <dd>(11) 98888-1234</dd>
+                        </div>
+                        <div>
+                            <dt>Cliente desde</dt>
+                            <dd>12/03/2024</dd>
+                        </div>
+                    </dl>
+
+                    <div class="profile-actions">
+                        <a href="#" class="btn btn-outline">Editar meus dados</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<!-- ============ RODAPÉ ============ -->
+<footer class="site-footer" id="contato">
+    <div class="container footer-grid">
+        <div class="footer-brand">
+            <span class="brand-mark">Casa <em>Bella</em></span>
+            <p>Cozinha italiana autêntica, carta de vinhos selecionada e um salão para celebrar
+                o essencial: boa comida e boa companhia.</p>
+        </div>
+
+        <div class="footer-col">
+            <h3>Endereço</h3>
+            <address>
+                Rua dos Jasmins, 214<br />
+                Jardim Europa — São Paulo, SP<br />
+                CEP 01449-000
+            </address>
+        </div>
+
+        <div class="footer-col">
+            <h3>Contato</h3>
+            <ul>
+                <li><a href="tel:+551130405060">(11) 3040-5060</a></li>
+                <li><a href="mailto:ola@casabella.com.br">ola@casabella.com.br</a></li>
+            </ul>
+            <div class="social-row">
+                <a href="#" aria-label="Instagram da Casa Bella">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg>
+                </a>
+                <a href="#" aria-label="Facebook da Casa Bella">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M14 9h3V6h-3c-2 0-3.5 1.5-3.5 3.5V12H8v3h2.5v6h3v-6H16l.5-3h-3V9.7c0-.4.3-.7.7-.7z"></path></svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="footer-col">
+            <h3>Horário</h3>
+            <ul>
+                <li>Ter a sex — 18h às 23h30</li>
+                <li>Sáb e dom — 12h às 23h30</li>
+                <li>Segunda — fechado</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container footer-bottom">
+        <p>© 2026 Casa Bella. Todos os direitos reservados.</p>
+        <p>Projeto acadêmico — desenvolvido para fins de estudo.</p>
+    </div>
+</footer>
+
+</body>
+</html>
