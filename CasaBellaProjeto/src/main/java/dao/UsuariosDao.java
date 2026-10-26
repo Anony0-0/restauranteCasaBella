@@ -20,7 +20,7 @@ public class UsuariosDao {
     //Conexão com BD
     private void conectar() throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        conectado = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/bdcasabella", "root", "1234lanamysql#");
+        conectado = DriverManager.getConnection("caminho do banco");
     }
 
     public int cadastrarUsuario(String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
