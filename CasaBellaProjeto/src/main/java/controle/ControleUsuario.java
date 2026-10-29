@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import dao.UsuariosDao;
 import java.sql.SQLException;
+import java.util.Locale;
 
 @WebServlet(name = "ControleUsuario", urlPatterns = {"/ControleUsuario"})
 public class ControleUsuario extends HttpServlet {
@@ -51,6 +52,8 @@ public class ControleUsuario extends HttpServlet {
             //Receber o email e a senha digitados
             email = request.getParameter("email");
             senha = request.getParameter("senha");
+
+
             // fazer o login
             UsuariosDao dao = new UsuariosDao();
             try {
@@ -60,7 +63,10 @@ public class ControleUsuario extends HttpServlet {
                 } else { //Se encontrou o usuário
                     // Envia o nome para o arquivo restrito.jsp
                     request.setAttribute("nome", nome);
-                    request.getRequestDispatcher("restrito.jsp").forward(request, response);
+                    if (email.toLowerCase().endsWith("@casabella.com.br")){
+                        request.getRequestDispatcher("gerenciamento.html").forward(request,response);
+                    }
+                    request.getRequestDispatcher("areaCliente.html").forward(request, response);
                 }
             } catch (ClassNotFoundException | SQLException erro) {
                 mensagem = erro.getMessage();
