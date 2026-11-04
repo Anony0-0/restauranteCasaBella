@@ -29,6 +29,15 @@ public class ControleLogin extends HttpServlet {
             String nome = new UsuariosDao().logar(email, senha);
             if (nome != null) {
                 guardarLogin(request, "funcionario", nome, email);
+
+                response.sendRedirect(
+                        request.getContextPath() +
+                                "/ControleUsuario?origem=listarFuncionarios"
+                );
+
+                return;
+            }  if (nome != null) {
+                guardarLogin(request, "funcionario", nome, email);
                 request.getRequestDispatcher("gerenciamento.jsp").forward(request, response);
                 return;
             }
