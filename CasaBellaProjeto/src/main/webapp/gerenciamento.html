@@ -1,3 +1,28 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%!
+    // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+%>
+<%
+    // PROTEÇÃO DA PÁGINA: ative (tirando os //) quando o ControleLogin passar
+    // a guardar o usuário na sessão. Quem não estiver logado volta para o login.
+    // if (session.getAttribute("nome") == null && request.getAttribute("nome") == null) {
+    //     response.sendRedirect("login.html");
+    //     return;
+    // }
+
+    // Dados de quem logou. O ControleLogin envia com request.setAttribute(...)
+    // ou guarda na sessão com session.setAttribute(...).
+    String nome = (String) request.getAttribute("nome");
+    if (nome == null) nome = (String) session.getAttribute("nome");
+    if (nome == null) nome = "Funcionário(a)"; // aparece só se a página for aberta direto
+
+    String cargo = (String) request.getAttribute("cargo");
+    if (cargo == null) cargo = (String) session.getAttribute("cargo");
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -21,13 +46,14 @@
   hambúrguer do cabeçalho, só que aqui com radio em vez de checkbox
   porque só uma aba pode estar ativa por vez.
 
-  Os dados das tabelas abaixo são só exemplo (fixos no HTML) para mostrar
-  o layout. Quando o back-end (JSP) estiver pronto, essas linhas de
-  <tbody> serão geradas dinamicamente a partir do banco.
+  O nome e o cargo no topo já vêm de quem logou. Os dados das tabelas
+  abaixo ainda são exemplo (fixos no HTML): quando o DAO estiver pronto,
+  as linhas do tbody serão geradas a partir do banco.
 -->
 
 <input type="radio" name="admin-tab" id="tab-pedidos" class="admin-tab-radio" checked />
 <input type="radio" name="admin-tab" id="tab-clientes" class="admin-tab-radio" />
+<input type="radio" name="admin-tab" id="tab-reservas" class="admin-tab-radio" />
 <input type="radio" name="admin-tab" id="tab-funcionarios" class="admin-tab-radio" />
 
 <div class="admin-shell">
@@ -41,6 +67,7 @@
         <nav class="admin-nav" aria-label="Navegação do painel">
             <label for="tab-pedidos">Pedidos</label>
             <label for="tab-clientes">Clientes</label>
+            <label for="tab-reservas">Reservas</label>
             <label for="tab-funcionarios">Funcionários</label>
         </nav>
 
@@ -59,9 +86,10 @@
     <main class="admin-main">
         <div class="admin-topbar">
             <div>
-                <!-- Placeholder: no futuro isso vem da sessão do usuário logado -->
-                <p class="admin-user-name">Giulia Marchetti</p>
-                <p class="admin-user-role">Gerente de salão</p>
+                <p class="admin-user-name"><%= esc(nome) %></p>
+                <% if (cargo != null) { %>
+                <p class="admin-user-role"><%= esc(cargo) %></p>
+                <% } %>
             </div>
         </div>
 
@@ -70,10 +98,8 @@
             <!-- ============ PAINEL: PEDIDOS ============ -->
             <section class="admin-panel" id="panel-pedidos" aria-label="Pedidos">
                 <!--
-                  A partir daqui é só um EXEMPLO de layout (baseado numa referência
-                  que vimos), pra testar o visual antes de aplicar nas outras abas.
-                  As sub-abas, a busca, o "Exportar" e a paginação são só visuais —
-                  nenhum deles filtra ou faz nada de verdade ainda.
+                  Exemplo de layout: as sub-abas, a busca, o "Exportar" e a paginação
+                  são só visuais — nenhum deles filtra ou faz nada de verdade ainda.
                 -->
                 <div class="admin-panel-header">
                     <div>
@@ -252,6 +278,12 @@
                 </div>
             </section>
 
+            <!-- ============ PAINEL: RESERVAS ============ -->
+            <SECTION class="admin-panel" id="panel-reservas" aria-label="Reservas">
+                <h1>Reservas</h1>
+            </SECTION>
+
+
             <!-- ============ PAINEL: FUNCIONÁRIOS ============ -->
             <section class="admin-panel" id="panel-funcionarios" aria-label="Funcionários">
                 <div class="admin-panel-header">
@@ -260,9 +292,11 @@
                 </div>
 
                 <div class="admin-table-wrap">
+
                     <table class="admin-table">
                         <thead>
                         <tr>
+                            <th>Usuário</th>
                             <th>Nome</th>
                             <th>Cargo</th>
                             <th>E-mail</th>
@@ -272,45 +306,36 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>Giulia Marchetti</td>
-                            <td>Gerente de salão</td>
-                            <td>giulia@casabella.com.br</td>
-                            <td>12345</td>
-                            <td>10/02/2022</td>
-                            <td>
-                                <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Paolo Ricci</td>
-                            <td>Chef de cozinha</td>
-                            <td>paolo@casabella.com.br</td>
-                            <td>12345</td>
-                            <td>15/06/2021</td>
-                            <td>
-                                <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Camila Duarte</td>
-                            <td>Garçonete</td>
-                            <td>camila@casabella.com.br</td>
-                            <td>12345</td>
-                            <td>03/11/2024</td>
-                            <td>
-                                <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
-                                </div>
-                            </td>
-                        </tr>
+
+                            <%
+                                java.sql.ResultSet funcionarios =
+                                        (java.sql.ResultSet) request.getAttribute("funcionarios");
+
+                                if (funcionarios != null) {
+
+                                    while (funcionarios.next()) {
+                            %>
+
+                            <tr>
+                                <td><%= esc(funcionarios.getString("nome")) %></td>
+                                <td><%= esc(funcionarios.getString("nome")) %></td>
+                                <td><%= esc(funcionarios.getString("cargo")) %></td>
+                                <td><%= esc(funcionarios.getString("email")) %></td>
+                                <td>Não disponível</td>
+                                <td><%= esc(funcionarios.getString("admissao")) %></td>
+
+                                <td>
+                                    <div class="admin-row-actions">
+                                        <a href="#">Ver</a>
+                                        <a href="#">Editar</a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <%
+                                    }
+                                }
+                            %>
                         </tbody>
                     </table>
                 </div>
