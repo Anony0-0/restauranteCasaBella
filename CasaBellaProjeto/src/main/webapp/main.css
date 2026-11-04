@@ -1520,9 +1520,45 @@ section {
     margin: 0.25rem 0 0;
     color: var(--color-cream);
 }
-
 .profile-actions {
     margin-top: var(--space-md);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.profile-actions .btn {
+    min-width: 13rem;
+    justify-content: center;
+}
+
+/* Checkbox escondido que abre e fecha o card de exclusão */
+.delete-toggle {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.delete-card {
+    display: none;
+}
+
+.delete-toggle:checked ~ .delete-card {
+    display: block;
+}
+
+/* Botão fica preenchido enquanto o card está aberto */
+.delete-toggle:checked ~ .profile-actions label[for="abrir-excluir"] {
+    background: var(--color-wine-bright);
+    border-color: var(--color-wine-bright);
+    color: var(--color-cream);
+}
+
+/* Foco do teclado (o checkbox é o elemento focado, o label é o que aparece) */
+.delete-toggle:focus-visible ~ .profile-actions label[for="abrir-excluir"] {
+    outline: 2px solid var(--color-gold-bright);
+    outline-offset: 3px;
 }
 
 /* Status extras usados nas reservas */
@@ -1539,4 +1575,160 @@ section {
 .status-pill.is-cancelada {
     background: rgba(124, 31, 46, 0.35);
     color: #d9a0a8;
+}
+
+/* =========================================================
+   Tela de mensagens (mensagens.jsp)
+   ========================================================= */
+.result-icon {
+    width: 56px;
+    height: 56px;
+    margin-top: var(--space-sm);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+}
+
+.result-icon.is-success {
+    color: #9fd39a;
+    background: rgba(110, 160, 100, 0.18);
+    border-color: rgba(110, 160, 100, 0.4);
+}
+
+.result-icon.is-warning {
+    color: var(--color-gold-bright);
+    background: rgba(201, 162, 75, 0.16);
+    border-color: var(--color-line);
+}
+
+.result-title {
+    margin-top: var(--space-sm);
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 600;
+    color: var(--color-cream);
+    overflow-wrap: anywhere;
+}
+
+.result-actions {
+    margin-top: var(--space-lg);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+/* =========================================================
+   Editar dados do cliente (editarDados.jsp)
+   ========================================================= */
+.edit-wrap {
+    max-width: 40rem;
+    margin-top: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.edit-card {
+    max-width: 40rem;
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+}
+
+.edit-card.is-danger {
+    border-color: rgba(160, 44, 63, 0.5);
+}
+
+.edit-card h2 {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--color-cream);
+}
+
+.edit-card > p {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+    color: var(--color-cream-muted);
+}
+
+.edit-card .auth-form {
+    margin-top: var(--space-md);
+}
+
+.field input[readonly] {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.btn-danger {
+    background: transparent;
+    color: #e8909e;
+    border-color: rgba(160, 44, 63, 0.6);
+}
+
+.btn-danger:hover {
+    background: var(--color-wine-bright);
+    border-color: var(--color-wine-bright);
+    color: var(--color-cream);
+}
+
+/* Excluir conta */
+.edit-card {
+    max-width: 40rem;
+    margin-top: var(--space-lg);
+    padding: var(--space-md);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+}
+
+.edit-card.is-danger {
+    border-color: rgba(160, 44, 63, 0.5);
+}
+
+.edit-card h2 {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    color: var(--color-cream);
+}
+
+.edit-card > p {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+    color: var(--color-cream-muted);
+}
+
+.edit-card .auth-form {
+    margin-top: var(--space-md);
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.btn-danger {
+    background: transparent;
+    color: #e8909e;
+    border-color: rgba(160, 44, 63, 0.6);
+}
+
+.btn-danger:hover {
+    background: var(--color-wine-bright);
+    border-color: var(--color-wine-bright);
+    color: var(--color-cream);
 }
