@@ -18,11 +18,11 @@ public class ClientesDao {
         conectado = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/bdcasabella", "root", "1234lanamysql#");
     }
 
-    //CADASTRO DOS CLIENTES
+    //CADASTRO de CLIENTES
 
     public int cadastrarCliente(String nome, String email, String senha, String telefone) throws SQLException, ClassNotFoundException {
         conectar();
-        st = conectado.prepareStatement("insert into clientes values(?,?,?,?)");
+        st = conectado.prepareStatement("insert into clientes (nome,email,senha,telefone) values(?,?,?,?)");
         st.setString(1, nome);
         st.setString(2, email);
         st.setString(3, senha);
@@ -47,6 +47,33 @@ public class ClientesDao {
             return null;
         }
     }
+
+    //Buscar cliente TWEM QUE FAZER ESSA PARTE
+    public String buscarPorEmail(String email) throws SQLException, ClassNotFoundException {
+        conectar();
+
+        return email;
+    }
+
+    //Excluir Clientes
+    public int excluirCliente(String email) throws SQLException, ClassNotFoundException {
+        conectar();
+        //Monta o comando delete a ser executado
+        st = conectado.prepareStatement("DELETE from clientes where email=?");
+        st.setString(1,email);
+        return st.executeUpdate();
+
+    }
+
+    public int alterarCliente(String email, String nome, String telefone) throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement("update clientes set nome=?, telefone=? where email=?");
+        st.setString(1, nome);
+        st.setString(2, telefone);
+        st.setString(3, email);
+        return st.executeUpdate();
+    }
+
 
 }
 
