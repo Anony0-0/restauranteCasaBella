@@ -20,17 +20,18 @@ public class UsuariosDao {
     //Conexão com BD
     private void conectar() throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        conectado = DriverManager.getConnection("caminho do banco");
+        conectado = DriverManager.getConnection("caminho banco");
     }
 
-    public int cadastrarUsuario(String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarUsuario(String id_usuario, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
-        st = conectado.prepareStatement("insert into usuarios values(?,?,?,?,?)");
-        st.setString(1, email);
-        st.setString(2, nome);
-        st.setString(3, senha);
-        st.setString(4, cargo);
-        st.setString(5, admissao);
+        st = conectado.prepareStatement("insert into usuarios values(?,?,?,?,?,?)");
+        st.setString(1,id_usuario);
+        st.setString(2, email);
+        st.setString(3, nome);
+        st.setString(4, senha);
+        st.setString(5, cargo);
+        st.setString(6, admissao);
         resultado = st.executeUpdate(); //Executa o insert acima
         return resultado;
     }
@@ -50,6 +51,18 @@ public class UsuariosDao {
         } else {
             return null;
         }
+    }
+
+    public ResultSet listarUsuarios() throws ClassNotFoundException, SQLException {
+        conectar();
+
+        st = conectado.prepareStatement("SELECT * FROM usuarios");
+
+        rs = st.executeQuery();
+
+        return rs;
+
+
     }
 
 }
