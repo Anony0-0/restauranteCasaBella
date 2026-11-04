@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -38,11 +39,43 @@ public class ControleCliente extends HttpServlet {
                     mensagem = erro.getMessage();
                 }
             }
+        }else if ("excluir".equalsIgnoreCase(origem)) {
+            // Só cliente logado pode excluir. getSession(false) não cria sessão nova.
+            HttpSession sessao = request.getSession(false);
+            if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
+                response.sendRedirect("login.html");
+                return;
+            }
+
+            // O e-mail vem da sessão (do login), NUNCA do formulário
+            String email = (String) sessao.getAttribute("email");
+            String senha = request.getParameter("senha");
+
+            try {
+                ClientesDao dao = new ClientesDao();
+                if (dao.logarCliente(email, senha) == null) {
+                    mensagem = "Senha incorreta. Sua conta não foi excluída.";
+                } else if (dao.excluirCliente(email) == 1) {
+                    sessao.invalidate(); // encerra o login
+                    mensagem = "Conta excluída com sucesso";
+                } else {
+                    mensagem = "Não foi possível excluir a conta.";
+                }
+            } catch (ClassNotFoundException | SQLException erro) {
+                String texto = erro.getMessage();
+                if (texto != null && texto.toLowerCase().contains("foreign key")) {
+                    mensagem = "Não é possível excluir: existem reservas ou pedidos ligados à sua conta.";
+                } else {
+                    mensagem = texto;
+                }
+            }
         } else {
             mensagem = "Operação inválida.";
         }
 
         request.setAttribute("mens", mensagem);
         request.getRequestDispatcher("mensagens.jsp").forward(request, response);
+
+
     }
 }
