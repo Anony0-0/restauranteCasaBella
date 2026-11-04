@@ -1,3 +1,35 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%!
+    // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+%>
+<%
+    // PROTEÇÃO DA PÁGINA: ative (tirando os //) quando o ControleLogin passar
+    // a guardar o usuário na sessão. Quem não estiver logado volta para o login.
+    // if (session.getAttribute("nome") == null && request.getAttribute("nome") == null) {
+    //     response.sendRedirect("login.html");
+    //     return;
+    // }
+
+    // Dados de quem logou. O ControleLogin envia com request.setAttribute(...)
+    // ou guarda na sessão com session.setAttribute(...).
+    String nome = (String) request.getAttribute("nome");
+    if (nome == null) nome = (String) session.getAttribute("nome");
+    if (nome == null) nome = "Cliente"; // aparece só se a página for aberta direto
+
+    String email = (String) request.getAttribute("email");
+    if (email == null) email = (String) session.getAttribute("email");
+    if (email == null) email = "—";
+
+    String telefone = (String) request.getAttribute("telefone");
+
+
+    // Só o primeiro nome para a saudação: "Renata Prado" -> "Renata"
+    String primeiroNome = nome.trim().split("\\s+")[0];
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -39,7 +71,7 @@
                     <li><a href="index.html#contato">Contato</a></li>
                 </ul>
             </nav>
-            <a href="area-cliente.html" class="avatar-button" aria-label="Minha área">
+            <a href="areaCliente.jsp" class="avatar-button" aria-label="Minha área">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="3.6"></circle>
                     <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"></path>
@@ -52,12 +84,12 @@
 <main id="conteudo-principal">
 
     <!--
-      Todos os dados desta página são exemplo (fixos no HTML). Quando o
-      back-end existir, o nome, a próxima reserva e as linhas das tabelas
-      vão ser preenchidos pelo JSP com os dados do cliente logado.
+      O nome na saudação e em "Meus dados" já vem de quem logou. Os demais
+      dados (próxima reserva e linhas das tabelas) ainda são exemplo fixos:
+      quando o DAO estiver pronto, serão preenchidos com os dados do cliente.
 
       As abas funcionam só com CSS: os radios abaixo precisam ficar no mesmo
-      nível (irmãos) do <div class="account-body">.
+      nível (irmãos) do div com a classe account-body.
     -->
     <section class="account" aria-label="Área do cliente">
         <div class="container">
@@ -70,7 +102,7 @@
             <div class="account-head">
                 <div>
                     <span class="eyebrow-mark">Área do cliente</span>
-                    <h1>Olá, Renata</h1>
+                    <h1>Olá, <%= esc(primeiroNome) %></h1>
                     <p class="account-sub">Aqui você acompanha suas reservas e os pedidos feitos no seu nome.</p>
                 </div>
                 <div class="account-head-actions">
@@ -216,19 +248,15 @@
                     <dl class="profile-list">
                         <div>
                             <dt>Nome</dt>
-                            <dd>Renata Prado</dd>
-                        </div>
-                        <div>
-                            <dt>Usuário</dt>
-                            <dd>renata.prado</dd>
+                            <dd><%= esc(nome) %></dd>
                         </div>
                         <div>
                             <dt>E-mail</dt>
-                            <dd>renata.prado@email.com</dd>
+                            <dd><%= esc(email) %></dd>
                         </div>
                         <div>
                             <dt>Telefone</dt>
-                            <dd>(11) 98888-1234</dd>
+                            <dd><%= esc(telefone) %></dd>
                         </div>
                         <div>
                             <dt>Cliente desde</dt>
@@ -236,8 +264,38 @@
                         </div>
                     </dl>
 
+                    </dl>
+
+                    <input type="checkbox" id="abrir-excluir" class="delete-toggle" aria-controls="card-excluir" />
+
                     <div class="profile-actions">
                         <a href="#" class="btn btn-outline">Editar meus dados</a>
+                        <label for="abrir-excluir" class="btn btn-danger">Excluir minha conta</label>
+                    </div>
+
+                    <div class="edit-card is-danger delete-card" id="card-excluir">
+                        <h2>Excluir minha conta</h2>
+                        <p>Esta ação não pode ser desfeita. Para confirmar, digite a sua senha.</p>
+
+                        <form class="auth-form" action="ControleCliente" method="post">
+                            <input type="hidden" name="origem" value="excluir" />
+
+                            <div class="field">
+                                <label for="senhaExcluir">Senha</label>
+                                <input type="password" id="senhaExcluir" name="senha" placeholder="••••••••" autocomplete="current-password" required />
+                            </div>
+
+                            <label class="field-check">
+                                <input type="checkbox" required />
+                                Entendo que não poderei desfazer
+                            </label>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-danger">Confirmar exclusão</button>
+                            </div>
+                        </form>
+                    </div>
+
                     </div>
                 </div>
             </div>
