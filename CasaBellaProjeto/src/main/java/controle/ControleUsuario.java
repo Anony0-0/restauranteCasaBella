@@ -19,8 +19,6 @@ public class ControleUsuario extends HttpServlet {
                          HttpServletResponse response)
             throws ServletException, IOException {
 
-        System.out.println("ENTROU NO CONTROLE USUARIO!");
-
         String origem = request.getParameter("origem");
 
         if ("listarFuncionarios".equalsIgnoreCase(origem)) {
@@ -38,19 +36,13 @@ public class ControleUsuario extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-
-            System.out.println("ENTROU NO METODO LISTAR FUNCIONARIOS!");
-
+            
             UsuariosDao dao = new UsuariosDao();
 
             ResultSet rs = dao.listarUsuarios();
-
-            System.out.println("CONSULTA AO BANCO EXECUTADA!");
-
+            
             request.setAttribute("funcionarios", rs);
-
-            System.out.println("ATRIBUTO ENVIADO AO JSP!");
-
+            
             request.getRequestDispatcher("/gerenciamento.jsp")
                     .forward(request, response);
 
