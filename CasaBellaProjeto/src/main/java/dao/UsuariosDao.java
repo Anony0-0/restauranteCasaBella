@@ -19,19 +19,17 @@ public class UsuariosDao {
 
     //Conexão com BD
     private void conectar() throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        conectado = DriverManager.getConnection("caminho banco");
+        conectado = ConexaoBD.conectar();
     }
 
-    public int cadastrarUsuario(String id_usuario, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarUsuario(String id_usuario, String email, String nome, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
-        st = conectado.prepareStatement("insert into usuarios values(?,?,?,?,?,?)");
+        st = conectado.prepareStatement("insert into usuarios values(?,?,?,?,?)");
         st.setString(1,id_usuario);
         st.setString(2, email);
         st.setString(3, nome);
-        st.setString(4, senha);
-        st.setString(5, cargo);
-        st.setString(6, admissao);
+        st.setString(4, cargo);
+        st.setString(5, admissao);
         resultado = st.executeUpdate(); //Executa o insert acima
         return resultado;
     }
@@ -61,8 +59,6 @@ public class UsuariosDao {
         rs = st.executeQuery();
 
         return rs;
-
-
     }
 
 }
