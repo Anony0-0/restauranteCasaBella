@@ -15,7 +15,7 @@ public class ClientesDao {
     //Conexão com BD
     private void conectar() throws ClassNotFoundException, SQLException {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        conectado = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/bdcasabella", "root", "1234lanamysql#");
+        conectado = DriverManager.getConnection("caminho banco");
     }
 
     //CADASTRO de CLIENTES
