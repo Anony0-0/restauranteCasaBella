@@ -14,12 +14,10 @@ public class ClientesDao {
 
     //Conexão com BD
     private void conectar() throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        conectado = DriverManager.getConnection("caminho banco");
+        conectado = ConexaoBD.conectar();
     }
 
     //CADASTRO de CLIENTES
-
     public int cadastrarCliente(String nome, String email, String senha, String telefone) throws SQLException, ClassNotFoundException {
         conectar();
         st = conectado.prepareStatement("insert into clientes (nome,email,senha,telefone) values(?,?,?,?)");
@@ -48,11 +46,14 @@ public class ClientesDao {
         }
     }
 
-    //Buscar cliente TWEM QUE FAZER ESSA PARTE
-    public String buscarPorEmail(String email) throws SQLException, ClassNotFoundException {
-        conectar();
+    //Buscar clientes
+    public ResultSet listarClientes() throws SQLException, ClassNotFoundException {
 
-        return email;
+        conectar();
+        String sql = "SELECT id_cliente, nome, email, telefone FROM clientes ORDER BY id_cliente DESC";
+        st = conectado.prepareStatement(sql);
+        rs = st.executeQuery();
+        return rs;
     }
 
     //Excluir Clientes
