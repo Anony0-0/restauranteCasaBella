@@ -68,6 +68,7 @@
             <label for="tab-pedidos">Pedidos</label>
             <label for="tab-clientes">Clientes</label>
             <label for="tab-reservas">Reservas</label>
+            <label for="tab-produtos">Produtos</label>
             <label for="tab-funcionarios">Funcionários</label>
         </nav>
 
@@ -283,6 +284,12 @@
                 <h1>Reservas</h1>
             </SECTION>
 
+            <!-- ============ PAINEL: PRODUTOS ============ -->
+            <SECTION class="admin-panel" id="panel-produtos" aria-label="Produtos">
+                <h1>Produtos</h1>
+            </SECTION>
+
+
 
             <!-- ============ PAINEL: FUNCIONÁRIOS ============ -->
             <section class="admin-panel" id="panel-funcionarios" aria-label="Funcionários">
@@ -345,6 +352,5 @@
     </main>
 
 </div>
-
 </body>
 </html>
