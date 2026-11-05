@@ -27,12 +27,13 @@ public class ControleLogin extends HttpServlet {
         try {
             // 1) Procura primeiro na tabela de funcionários
             String nome = new UsuariosDao().logar(email, senha);
+
             if (nome != null) {
+
                 guardarLogin(request, "funcionario", nome, email);
 
                 response.sendRedirect(
-                        request.getContextPath() +
-                                "/ControleUsuario?origem=listarFuncionarios"
+                        request.getContextPath() + "/PainelGerenciamento"
                 );
 
                 return;
