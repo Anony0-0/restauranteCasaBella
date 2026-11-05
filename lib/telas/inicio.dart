@@ -8,13 +8,13 @@ import 'mesas.dart';
 
 class InicioPage extends StatelessWidget {
   final String nomeGarcom;
-  final String cpf;
+  final String idUsuario;
   final String cargo;
 
   const InicioPage({
     super.key,
     required this.nomeGarcom,
-    required this.cpf,
+    required this.idUsuario,
     required this.cargo,
   });
 
@@ -69,7 +69,9 @@ class InicioPage extends StatelessWidget {
             tooltip: 'Gerenciar equipe',
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => EquipePage(cpfGerente: cpf)),
+              MaterialPageRoute(
+                builder: (_) => EquipePage(idGerente: idUsuario),
+              ),
             ),
             icon: const Icon(Icons.groups_2_outlined),
           ),
@@ -167,7 +169,7 @@ class InicioPage extends StatelessWidget {
                             const SizedBox(width: 7),
                             Flexible(
                               child: Text(
-                                'CPF: $cpf',
+                                'ID de usuário: $idUsuario',
                                 style: const TextStyle(
                                   color: Color(0xFFEADADD),
                                   fontSize: 13,

@@ -15,7 +15,7 @@ O anexo diz “Total: 6”, mas descreve também `itens_pedido` como tabela pró
 
 ## Funcionalidades
 
-- Cadastro/login local de colaboradores por CPF e senha; o primeiro cadastro recebe perfil Gerente e os seguintes recebem perfil Atendente. Em instalações anteriores sem perfil gerente, o primeiro colaborador cadastrado é promovido para permitir a gestão da equipe.
+- Cadastro/login local de colaboradores por ID de usuário e senha. O ID é gerado automaticamente no dispositivo e exibido ao concluir o cadastro; o primeiro cadastro recebe perfil Gerente e os seguintes recebem perfil Atendente. Em instalações anteriores sem perfil gerente, o primeiro colaborador cadastrado é promovido para permitir a gestão da equipe. Cadastros locais antigos que usavam CPF recebem um ID durante a migração.
 - Gerenciamento da equipe para Gerente/Administrador: consultar colaboradores e remover o acesso de quem não trabalha mais no local; o último gerente e a conta da sessão não podem ser removidos.
 - Catálogo com busca e filtro por categoria, carrinho e total do pedido.
 - Seleção de mesas com capacidade ou atendimento de balcão.
@@ -29,7 +29,7 @@ O app funciona em modo de demonstração offline: usuários, mesas e pedidos fic
 
 O anexo fornecido usa MySQL e difere do esquema SQL Server preexistente. Para evitar misturar dialetos, `database/mysql_schema.sql` contém a estrutura MySQL fornecida; `database/schema.sql` continua sendo uma referência SQL Server antiga. O código de modelos reconhece `disponibilidade` como `ENUM`, `BIT`, número ou booleano e aceita `preco_uni`/`preco_unitario`.
 
-Ainda há uma incompatibilidade de contrato que requer API/migração antes de integrar: a tabela MySQL `usuarios` usa email como chave primária e não tem CPF, enquanto o login local atual de colaboradores usa CPF. Além disso, o catálogo e as mesas de demonstração são locais, então os identificadores não são IDs garantidos pelo banco. Não envie pedidos deste modo a um banco real. A API deve autenticar por email, fornecer IDs reais, validar disponibilidade/mesa e gravar pedidos e itens atomicamente; o total deve ser recalculado no servidor (ou pelas triggers do MySQL), nunca confiado ao total enviado pelo app.
+Ainda há uma incompatibilidade de contrato que requer API/migração antes de integrar: a tabela MySQL `usuarios` usa email como chave primária e não tem `id_usuario`, enquanto o app gera IDs apenas no armazenamento local. Esses IDs não são IDs garantidos pelo banco nem devem ser usados para integração com produção. Além disso, o catálogo e as mesas de demonstração são locais. Não envie pedidos deste modo a um banco real. A API deve fornecer IDs reais, validar disponibilidade/mesa e gravar pedidos e itens atomicamente; o total deve ser recalculado no servidor (ou pelas triggers do MySQL), nunca confiado ao total enviado pelo app.
 
 O SQL anexado inclui usuários/contas com senha de demonstração em texto (`DEMO_SEM_LOGIN`); essas inserções foram deliberadamente excluídas do schema MySQL deste workspace. Cadastre usuários por backend com hash de senha forte. O cadastro local atual é somente para a demonstração offline.
 

@@ -4,18 +4,15 @@ import '../repositories/local_repository.dart';
 class AuthController {
   Future<bool> temColaboradores() => LocalRepository.temColaboradores();
 
-  Future<String?> cadastrar({
+  Future<({int? idUsuario, String? erro})> cadastrar({
     required String nome,
-    required String cpf,
     required String senha,
-  }) => LocalRepository.cadastrar(nome: nome, cpf: cpf, senha: senha);
+  }) => LocalRepository.cadastrar(nome: nome, senha: senha);
 
   Future<Map<String, String>?> entrar({
-    required String cpf,
+    required String idUsuario,
     required String senha,
-  }) => LocalRepository.entrar(cpf: cpf, senha: senha);
-
-  bool cpfValido(String cpf) => LocalRepository.cpfValido(cpf);
+  }) => LocalRepository.entrar(idUsuario: idUsuario, senha: senha);
 
   bool podeGerenciarEquipe(String? cargo) =>
       LocalRepository.cargoPodeGerenciarEquipe(cargo);
@@ -24,10 +21,10 @@ class AuthController {
       LocalRepository.listarColaboradores();
 
   Future<String?> removerColaborador({
-    required String cpfResponsavel,
-    required String cpfColaborador,
+    required String idResponsavel,
+    required String idColaborador,
   }) => LocalRepository.removerColaborador(
-    cpfResponsavel: cpfResponsavel,
-    cpfColaborador: cpfColaborador,
+    idResponsavel: idResponsavel,
+    idColaborador: idColaborador,
   );
 }

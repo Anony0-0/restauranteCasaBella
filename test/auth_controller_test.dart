@@ -14,73 +14,56 @@ void main() {
     controller = AuthController();
   });
 
-  group('Autenticação de colaboradores por CPF', () {
-    test('cadastra e autentica com CPF formatado ou sem pontuação', () async {
-      final erro = await controller.cadastrar(
+  group('Autenticação de colaboradores por ID de usuário', () {
+    test('gera um ID no cadastro e autentica com ID e senha', () async {
+      final resultado = await controller.cadastrar(
         nome: 'Ana Colaboradora',
-        cpf: '529.982.247-25',
         senha: 'senha123',
       );
 
-      expect(erro, isNull);
+      expect(resultado.erro, isNull);
+      expect(resultado.idUsuario, 1);
       expect(
-        await controller.entrar(cpf: '52998224725', senha: 'senha123'),
-        containsPair('cpf', '52998224725'),
+        await controller.entrar(idUsuario: '1', senha: 'senha123'),
+        containsPair('id_usuario', '1'),
       );
       expect(
-        (await controller.entrar(
-          cpf: '52998224725',
-          senha: 'senha123',
-        ))?['cargo'],
+        (await controller.entrar(idUsuario: '1', senha: 'senha123'))?['cargo'],
         'Gerente',
       );
     });
 
-    test('rejeita CPF inválido no cadastro', () async {
+    test('rejeita ID inválido no login', () async {
       expect(
-        await controller.cadastrar(
-          nome: 'Ana Colaboradora',
-          cpf: '111.111.111-11',
-          senha: 'senha123',
-        ),
-        'Informe um CPF válido.',
+        await controller.entrar(idUsuario: 'abc', senha: 'senha123'),
+        isNull,
+      );
+      expect(
+        await controller.entrar(idUsuario: '0', senha: 'senha123'),
+        isNull,
       );
     });
 
-    test('impede cadastro duplicado do mesmo CPF', () async {
-      await controller.cadastrar(
+    test('gera IDs diferentes para colaboradores cadastrados', () async {
+      final primeiro = await controller.cadastrar(
         nome: 'Ana Colaboradora',
-        cpf: '529.982.247-25',
+        senha: 'senha123',
+      );
+      final segundo = await controller.cadastrar(
+        nome: 'Outra pessoa',
         senha: 'senha123',
       );
 
-      expect(
-        await controller.cadastrar(
-          nome: 'Outra pessoa',
-          cpf: '52998224725',
-          senha: 'senha123',
-        ),
-        'Já existe uma conta cadastrada com este CPF.',
-      );
+      expect(primeiro.idUsuario, 1);
+      expect(segundo.idUsuario, 2);
     });
 
     test('novos cadastros recebem perfil atendente', () async {
-      await controller.cadastrar(
-        nome: 'Gerente Casa Bella',
-        cpf: '529.982.247-25',
-        senha: 'senha123',
-      );
-      await controller.cadastrar(
-        nome: 'Bruna Atendente',
-        cpf: '111.444.777-35',
-        senha: 'senha123',
-      );
+      await controller.cadastrar(nome: 'Gerente Casa Bella', senha: 'senha123');
+      await controller.cadastrar(nome: 'Bruna Atendente', senha: 'senha123');
 
       expect(
-        (await controller.entrar(
-          cpf: '11144477735',
-          senha: 'senha123',
-        ))?['cargo'],
+        (await controller.entrar(idUsuario: '2', senha: 'senha123'))?['cargo'],
         'Atendente',
       );
     });
@@ -104,6 +87,7 @@ void main() {
         final colaboradores = await controller.listarColaboradores();
 
         expect(colaboradores.single['cargo'], 'Gerente');
+        expect(colaboradores.single['id_usuario'], '1');
         expect(await controller.temColaboradores(), isTrue);
       },
     );
@@ -113,29 +97,25 @@ void main() {
       () async {
         await controller.cadastrar(
           nome: 'Gerente Casa Bella',
-          cpf: '529.982.247-25',
           senha: 'senha123',
         );
-        await controller.cadastrar(
-          nome: 'Bruna Atendente',
-          cpf: '111.444.777-35',
-          senha: 'senha123',
-        );
+        await controller.cadastrar(nome: 'Bruna Atendente', senha: 'senha123');
 
         final equipeAntes = await controller.listarColaboradores();
         expect(equipeAntes, hasLength(2));
         expect(equipeAntes.first.keys, isNot(contains('senhaHash')));
+        expect(equipeAntes.first.keys, contains('id_usuario'));
 
         expect(
           await controller.removerColaborador(
-            cpfResponsavel: '52998224725',
-            cpfColaborador: '11144477735',
+            idResponsavel: '1',
+            idColaborador: '2',
           ),
           isNull,
         );
         expect(await controller.listarColaboradores(), hasLength(1));
         expect(
-          await controller.entrar(cpf: '11144477735', senha: 'senha123'),
+          await controller.entrar(idUsuario: '2', senha: 'senha123'),
           isNull,
         );
       },
@@ -146,40 +126,35 @@ void main() {
       () async {
         await controller.cadastrar(
           nome: 'Gerente Casa Bella',
-          cpf: '529.982.247-25',
           senha: 'senha123',
         );
-        await controller.cadastrar(
-          nome: 'Bruna Atendente',
-          cpf: '111.444.777-35',
-          senha: 'senha123',
-        );
+        await controller.cadastrar(nome: 'Bruna Atendente', senha: 'senha123');
 
         expect(
           await controller.removerColaborador(
-            cpfResponsavel: '11144477735',
-            cpfColaborador: '52998224725',
+            idResponsavel: '2',
+            idColaborador: '1',
           ),
           contains('Somente um gerente'),
         );
         expect(
           await controller.removerColaborador(
-            cpfResponsavel: '52998224725',
-            cpfColaborador: '52998224725',
+            idResponsavel: '1',
+            idColaborador: '1',
           ),
           contains('própria conta'),
         );
         expect(
           await controller.removerColaborador(
-            cpfResponsavel: '52998224725',
-            cpfColaborador: '11144477735',
+            idResponsavel: '1',
+            idColaborador: '2',
           ),
           isNull,
         );
         expect(
           await controller.removerColaborador(
-            cpfResponsavel: '52998224725',
-            cpfColaborador: '52998224725',
+            idResponsavel: '1',
+            idColaborador: '1',
           ),
           contains('própria conta'),
         );

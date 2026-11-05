@@ -71,16 +71,17 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _authController = AuthController();
-  final TextEditingController usuarioController = TextEditingController();
+  final TextEditingController idUsuarioController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
 
   bool mostrarSenha = false;
   bool carregando = false;
 
   Future<void> entrar() async {
-    if (usuarioController.text.trim().isEmpty || senhaController.text.isEmpty) {
+    if (idUsuarioController.text.trim().isEmpty ||
+        senhaController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe seu CPF e sua senha.')),
+        const SnackBar(content: Text('Informe seu ID de usuário e sua senha.')),
       );
       return;
     }
@@ -88,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => carregando = true);
 
     final usuario = await _authController.entrar(
-      cpf: usuarioController.text,
+      idUsuario: idUsuarioController.text,
       senha: senhaController.text,
     );
 
@@ -97,9 +98,9 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => carregando = false);
 
     if (usuario == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('CPF ou senha incorretos.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ID de usuário ou senha incorretos.')),
+      );
       return;
     }
 
@@ -108,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
       MaterialPageRoute(
         builder: (_) => InicioPage(
           nomeGarcom: usuario['nome']!,
-          cpf: usuario['cpf']!,
+          idUsuario: usuario['id_usuario']!,
           cargo: usuario['cargo']!,
         ),
       ),
@@ -173,11 +174,11 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 TextField(
-                  controller: usuarioController,
+                  controller: idUsuarioController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'CPF',
-                    hintText: 'Somente números ou com pontuação',
+                    labelText: 'ID de usuário',
+                    hintText: 'Informe o ID recebido no cadastro',
                     prefixIcon: const Icon(Icons.badge_outlined),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -267,7 +268,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    usuarioController.dispose();
+    idUsuarioController.dispose();
     senhaController.dispose();
     super.dispose();
   }
@@ -284,7 +285,6 @@ class _CadastroPageState extends State<CadastroPage> {
   final _authController = AuthController();
   final _formKey = GlobalKey<FormState>();
   final _nome = TextEditingController();
-  final _cpf = TextEditingController();
   final _senha = TextEditingController();
   final _confirmacao = TextEditingController();
 
@@ -296,9 +296,8 @@ class _CadastroPageState extends State<CadastroPage> {
 
     setState(() => _salvando = true);
 
-    final erro = await _authController.cadastrar(
+    final resultado = await _authController.cadastrar(
       nome: _nome.text,
-      cpf: _cpf.text,
       senha: _senha.text,
     );
 
@@ -306,18 +305,29 @@ class _CadastroPageState extends State<CadastroPage> {
 
     setState(() => _salvando = false);
 
-    if (erro != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(erro)));
+    if (resultado.erro != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(resultado.erro!)));
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Cadastro salvo. Entre com seu CPF e senha.'),
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cadastro salvo'),
+        content: Text(
+          'Seu ID de usuário é ${resultado.idUsuario}. '
+          'Use esse ID e sua senha para entrar.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Entendi'),
+          ),
+        ],
       ),
     );
-
-    Navigator.pop(context);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -362,20 +372,10 @@ class _CadastroPageState extends State<CadastroPage> {
                       : null,
                 ),
                 const SizedBox(height: 14),
-                TextFormField(
-                  controller: _cpf,
-                  keyboardType: TextInputType.number,
-                  maxLength: 14,
-                  decoration: const InputDecoration(
-                    labelText: 'CPF do colaborador',
-                    hintText: '000.000.000-00',
-                    prefixIcon: Icon(Icons.badge_outlined),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) =>
-                      (value == null || !_authController.cpfValido(value))
-                      ? 'Informe um CPF válido.'
-                      : null,
+                const Text(
+                  'O ID de usuário será gerado automaticamente após o cadastro.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.black54),
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
@@ -440,7 +440,6 @@ class _CadastroPageState extends State<CadastroPage> {
   @override
   void dispose() {
     _nome.dispose();
-    _cpf.dispose();
     _senha.dispose();
     _confirmacao.dispose();
     super.dispose();

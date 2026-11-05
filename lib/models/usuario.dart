@@ -1,6 +1,6 @@
 class Usuario {
   final int? idUsuario;
-  final String cpf;
+  final String? cpf;
   final String? email;
   final String nome;
   final String senhaHash;
@@ -9,7 +9,7 @@ class Usuario {
 
   const Usuario({
     this.idUsuario,
-    required this.cpf,
+    this.cpf,
     this.email,
     required this.nome,
     required this.senhaHash,

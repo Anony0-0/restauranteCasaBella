@@ -5,20 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('LocalRepository.cpfValido', () {
-    test('aceita CPF válido com pontuação', () {
-      expect(LocalRepository.cpfValido('529.982.247-25'), isTrue);
-    });
-
-    test('rejeita CPF com dígitos repetidos', () {
-      expect(LocalRepository.cpfValido('111.111.111-11'), isFalse);
-    });
-
-    test('rejeita CPF com dígitos verificadores incorretos', () {
-      expect(LocalRepository.cpfValido('529.982.247-24'), isFalse);
-    });
-  });
-
   group('Alteração e cancelamento de pedidos', () {
     setUp(() => SharedPreferences.setMockInitialValues({}));
 

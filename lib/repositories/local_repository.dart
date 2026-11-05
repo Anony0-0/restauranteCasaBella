@@ -14,24 +14,6 @@ class LocalRepository {
   static const _pedidosKey = 'casa_bella_pedidos';
   static const _mesasKey = 'casa_bella_mesas';
 
-  static String normalizarCpf(String cpf) => cpf.replaceAll(RegExp(r'\D'), '');
-
-  static bool cpfValido(String cpf) {
-    final numero = normalizarCpf(cpf);
-    if (numero.length != 11 || RegExp(r'^(\d)\1{10}$').hasMatch(numero)) {
-      return false;
-    }
-    for (var digito = 9; digito < 11; digito++) {
-      var soma = 0;
-      for (var i = 0; i < digito; i++) {
-        soma += int.parse(numero[i]) * ((digito + 1) - i);
-      }
-      final verificador = (soma * 10) % 11 % 10;
-      if (verificador != int.parse(numero[digito])) return false;
-    }
-    return true;
-  }
-
   static String _hashSenha(String senha, String salt) =>
       sha256.convert(utf8.encode('$salt:$senha')).toString();
 
@@ -47,6 +29,24 @@ class LocalRepository {
     final usuarios = (prefs.getStringList(_usuariosKey) ?? [])
         .map((item) => jsonDecode(item) as Map<String, dynamic>)
         .toList();
+    var alterado = false;
+    var proximoId =
+        usuarios
+            .map(
+              (usuario) => int.tryParse('${usuario['id_usuario'] ?? ''}') ?? 0,
+            )
+            .fold<int>(0, (maior, id) => id > maior ? id : maior) +
+        1;
+    for (final usuario in usuarios) {
+      final idExistente = int.tryParse('${usuario['id_usuario'] ?? ''}');
+      if (idExistente == null || idExistente <= 0) {
+        // Migra cadastros offline antigos que usavam CPF como identificador.
+        usuario['id_usuario'] = proximoId++;
+        alterado = true;
+      } else {
+        usuario['id_usuario'] = idExistente;
+      }
+    }
     if (usuarios.isNotEmpty &&
         !usuarios.any(
           (usuario) => cargoPodeGerenciarEquipe(usuario['cargo']?.toString()),
@@ -54,6 +54,9 @@ class LocalRepository {
       // Compatibilidade: em instalações antigas, o primeiro colaborador passa
       // a administrar a equipe, pois a versão anterior não tinha perfis.
       usuarios.first['cargo'] = 'Gerente';
+      alterado = true;
+    }
+    if (alterado) {
       await prefs.setStringList(
         _usuariosKey,
         usuarios.map((usuario) => jsonEncode(usuario)).toList(),
@@ -74,8 +77,8 @@ class LocalRepository {
     return (await _usuariosComGerenteInicial(prefs))
         .map(
           (usuario) => {
+            'id_usuario': '${usuario['id_usuario'] ?? ''}',
             'nome': usuario['nome']?.toString() ?? '',
-            'cpf': usuario['cpf']?.toString() ?? '',
             'cargo': usuario['cargo']?.toString() ?? 'Atendente',
             'admissao': usuario['admissao']?.toString() ?? '',
           },
@@ -85,18 +88,16 @@ class LocalRepository {
   }
 
   static Future<String?> removerColaborador({
-    required String cpfResponsavel,
-    required String cpfColaborador,
+    required String idResponsavel,
+    required String idColaborador,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final usuarios = (prefs.getStringList(_usuariosKey) ?? [])
-        .map((item) => jsonDecode(item) as Map<String, dynamic>)
-        .toList();
-    final responsavelCpf = normalizarCpf(cpfResponsavel);
-    final colaboradorCpf = normalizarCpf(cpfColaborador);
+    final usuarios = await _usuariosComGerenteInicial(prefs);
+    final responsavelId = int.tryParse(idResponsavel);
+    final colaboradorId = int.tryParse(idColaborador);
     Map<String, dynamic>? responsavel;
     for (final usuario in usuarios) {
-      if (usuario['cpf'] == responsavelCpf) {
+      if (usuario['id_usuario'] == responsavelId) {
         responsavel = usuario;
         break;
       }
@@ -106,12 +107,12 @@ class LocalRepository {
         !cargoPodeGerenciarEquipe(responsavel['cargo']?.toString())) {
       return 'Somente um gerente ou administrador pode remover colaboradores.';
     }
-    if (responsavelCpf == colaboradorCpf) {
+    if (responsavelId == colaboradorId) {
       return 'Não é possível remover a própria conta durante a sessão.';
     }
 
     final indice = usuarios.indexWhere(
-      (usuario) => usuario['cpf'] == colaboradorCpf,
+      (usuario) => usuario['id_usuario'] == colaboradorId,
     );
     if (indice < 0) return 'Colaborador não encontrado.';
 
@@ -135,27 +136,24 @@ class LocalRepository {
     return null;
   }
 
-  static Future<String?> cadastrar({
+  static Future<({int? idUsuario, String? erro})> cadastrar({
     required String nome,
-    required String cpf,
     required String senha,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final usuarios = (prefs.getStringList(_usuariosKey) ?? [])
-        .map((item) => jsonDecode(item) as Map<String, dynamic>)
-        .toList();
-    final cpfNormalizado = normalizarCpf(cpf);
-    if (!cpfValido(cpfNormalizado)) {
-      return 'Informe um CPF válido.';
-    }
-    if (usuarios.any((usuario) => usuario['cpf'] == cpfNormalizado)) {
-      return 'Já existe uma conta cadastrada com este CPF.';
-    }
+    final usuarios = await _usuariosComGerenteInicial(prefs);
     final salt = List<int>.generate(16, (_) => Random.secure().nextInt(256));
     final saltTexto = base64UrlEncode(salt);
+    final idUsuario =
+        usuarios
+            .map(
+              (usuario) => int.tryParse('${usuario['id_usuario'] ?? ''}') ?? 0,
+            )
+            .fold<int>(0, (maior, id) => id > maior ? id : maior) +
+        1;
     usuarios.add({
+      'id_usuario': idUsuario,
       'nome': nome.trim(),
-      'cpf': cpfNormalizado,
       // O primeiro cadastro inicializa o perfil gerente; novos cadastros são atendentes.
       'cargo': usuarios.isEmpty ? 'Gerente' : 'Atendente',
       'admissao': DateTime.now().toIso8601String().substring(0, 10),
@@ -166,26 +164,24 @@ class LocalRepository {
       _usuariosKey,
       usuarios.map((usuario) => jsonEncode(usuario)).toList(),
     );
-    return null;
+    return (idUsuario: idUsuario, erro: null);
   }
 
   static Future<Map<String, String>?> entrar({
-    required String cpf,
+    required String idUsuario,
     required String senha,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final usuarios = (await _usuariosComGerenteInicial(prefs))
-        .map(jsonEncode)
-        .toList();
-    final cpfNormalizado = normalizarCpf(cpf);
-    for (final item in usuarios) {
-      final usuario = jsonDecode(item) as Map<String, dynamic>;
-      if (usuario['cpf'] == cpfNormalizado &&
+    final usuarios = await _usuariosComGerenteInicial(prefs);
+    final id = int.tryParse(idUsuario.trim());
+    if (id == null || id <= 0) return null;
+    for (final usuario in usuarios) {
+      if (usuario['id_usuario'] == id &&
           usuario['senhaHash'] ==
               _hashSenha(senha, usuario['salt'] as String)) {
         return {
           'nome': usuario['nome'] as String,
-          'cpf': cpfNormalizado,
+          'id_usuario': id.toString(),
           'cargo': usuario['cargo'] as String? ?? 'Atendente',
         };
       }

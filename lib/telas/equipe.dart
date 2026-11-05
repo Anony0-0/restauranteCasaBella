@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
 
 class EquipePage extends StatefulWidget {
-  final String cpfGerente;
+  final String idGerente;
 
-  const EquipePage({super.key, required this.cpfGerente});
+  const EquipePage({super.key, required this.idGerente});
 
   @override
   State<EquipePage> createState() => _EquipePageState();
@@ -49,15 +49,15 @@ class _EquipePageState extends State<EquipePage> {
     );
     if (confirmar != true || !mounted) return;
 
-    final cpf = colaborador['cpf']!;
-    setState(() => _removendo.add(cpf));
+    final idColaborador = colaborador['id_usuario']!;
+    setState(() => _removendo.add(idColaborador));
     final erro = await _authController.removerColaborador(
-      cpfResponsavel: widget.cpfGerente,
-      cpfColaborador: cpf,
+      idResponsavel: widget.idGerente,
+      idColaborador: idColaborador,
     );
     if (!mounted) return;
     setState(() {
-      _removendo.remove(cpf);
+      _removendo.remove(idColaborador);
       _carregarColaboradores();
     });
     ScaffoldMessenger.of(context).showSnackBar(
@@ -95,11 +95,11 @@ class _EquipePageState extends State<EquipePage> {
           separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final colaborador = colaboradores[index];
-            final cpf = colaborador['cpf']!;
+            final idColaborador = colaborador['id_usuario']!;
             final eGerente = _authController.podeGerenciarEquipe(
               colaborador['cargo'],
             );
-            final eProprioUsuario = cpf == widget.cpfGerente;
+            final eProprioUsuario = idColaborador == widget.idGerente;
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
@@ -110,15 +110,17 @@ class _EquipePageState extends State<EquipePage> {
                   ),
                 ),
                 title: Text(colaborador['nome'] ?? 'Colaborador'),
-                subtitle: Text(colaborador['cargo'] ?? 'Atendente'),
+                subtitle: Text(
+                  '${colaborador['cargo'] ?? 'Atendente'} · ID ${colaborador['id_usuario']}',
+                ),
                 trailing: eProprioUsuario
                     ? const Chip(label: Text('Você'))
                     : IconButton(
                         tooltip: 'Remover acesso',
-                        onPressed: _removendo.contains(cpf)
+                        onPressed: _removendo.contains(idColaborador)
                             ? null
                             : () => _remover(colaborador),
-                        icon: _removendo.contains(cpf)
+                        icon: _removendo.contains(idColaborador)
                             ? const SizedBox.square(
                                 dimension: 20,
                                 child: CircularProgressIndicator(
