@@ -58,7 +58,8 @@ public class ControleReserva extends HttpServlet {
         } catch (DateTimeParseException | NumberFormatException | NullPointerException erro) {
             mensagem = "Dados da reserva inválidos.";
         } catch (ClassNotFoundException | SQLException erro) {
-            mensagem = erro.getMessage();
+            erro.printStackTrace();
+            mensagem = "Não foi possível concluir a reserva agora. Tente novamente em instantes.";
         }
 
         request.setAttribute("mens", mensagem);
