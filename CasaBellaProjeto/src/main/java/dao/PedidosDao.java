@@ -16,15 +16,6 @@ public class PedidosDao {
         conectado = ConexaoBD.conectar();
     }
 
-
-    //Cadastro de pedidos (feito pelo web e mobile)
-    /*public int cadastrarPedidos() throws SQLException, ClassNotFoundException {
-        conectar();
-        st = conectado.prepareStatement("insert into pedidos () values ()" );
-
-
-    }*/
-
     //MOSTRAR PEDIDOS
     public ResultSet listarPedidos() throws SQLException, ClassNotFoundException {
         conectar();
@@ -39,5 +30,54 @@ public class PedidosDao {
 
     }
 
+    // Abre ou cria o pedido de uma reserva confirmada.
+    // Pode receber o idReserva OU o idMesa (o outro vem null).
+    // Retorna o id do pedido, ou 0 se não houver reserva confirmada.
+    public int cadastrarPedido(Integer idReserva, Integer idMesa) throws SQLException, ClassNotFoundException {
+        conectar();
+        try {
+            // 1. Acha a reserva confirmada (com mesa atribuída)
+            String filtro = (idReserva != null) ? "id_reserva = ?" : "id_mesa = ?";
+            int chave = (idReserva != null) ? idReserva : idMesa;
+
+            int reserva, cliente, mesa;
+            try (PreparedStatement ps = conectado.prepareStatement(
+                    "SELECT id_reserva, id_cliente, id_mesa FROM reservas " +
+                            "WHERE status = 'confirmada' AND id_mesa IS NOT NULL AND " + filtro)) {
+                ps.setInt(1, chave);
+                try (ResultSet r = ps.executeQuery()) {
+                    if (!r.next()) return 0;
+                    reserva = r.getInt("id_reserva");
+                    cliente = r.getInt("id_cliente");
+                    mesa = r.getInt("id_mesa");
+                }
+            }
+
+            // 2. Se já existe pedido aberto dessa reserva, reaproveita
+            try (PreparedStatement ps = conectado.prepareStatement(
+                    "SELECT id_pedido FROM pedidos WHERE id_reserva = ? AND status = 'em preparo'")) {
+                ps.setInt(1, reserva);
+                try (ResultSet r = ps.executeQuery()) {
+                    if (r.next()) return r.getInt("id_pedido");
+                }
+            }
+
+            // 3. Senão, cria um novo
+            try (PreparedStatement ps = conectado.prepareStatement(
+                    "INSERT INTO pedidos (id_cliente, id_reserva, id_mesa, data_pedido, status, valor_total) " +
+                            "VALUES (?, ?, ?, NOW(), 'em preparo', 0)",
+                    Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, cliente);
+                ps.setInt(2, reserva);
+                ps.setInt(3, mesa);
+                ps.executeUpdate();
+                try (ResultSet chaves = ps.getGeneratedKeys()) {
+                    return chaves.next() ? chaves.getInt(1) : 0;
+                }
+            }
+        } finally {
+            conectado.close(); // fecha a conexão para não acumular conexões abertas
+        }
+    }
 
 }
