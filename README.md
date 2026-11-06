@@ -7,9 +7,11 @@ Projeto extensivo acadêmico
 Tela Introdução 
 <img width="1868" height="929" alt="image" src="https://github.com/user-attachments/assets/46fff733-e1cc-404a-9b3c-89171aac24a5" />
 
+Telas principais de genrenciamento
 
 Tabela pedidos
-<img width="1877" height="924" alt="image" src="https://github.com/user-attachments/assets/b68eb58d-da0c-40de-9b56-dc43b2df2906" />
+<img width="1867" height="931" alt="image" src="https://github.com/user-attachments/assets/3564e452-d2e4-49b1-a63d-edc4a0da82cf" />
+
 
 #Tabela CLientes
 <img width="1874" height="925" alt="image" src="https://github.com/user-attachments/assets/7ff393bc-ce29-4860-aefe-c58d3dfb0f37" />
