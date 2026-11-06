@@ -28,6 +28,27 @@ class PedidoController {
     required List<Map<String, dynamic>> itens,
   }) => LocalRepository.alterarPedido(pedido, itens: itens);
 
+  Future<Map<String, dynamic>> adicionarItensAoPedido({
+    required int pedidoId,
+    required List<Map<String, dynamic>> itens,
+  }) =>
+      LocalRepository.adicionarItensAoPedido(pedidoId: pedidoId, itens: itens);
+
+  Future<Map<String, dynamic>> fecharPedido({
+    required int pedidoId,
+    int? reservaId,
+  }) => LocalRepository.fecharPedido(pedidoId: pedidoId, reservaId: reservaId);
+
+  Future<Map<String, dynamic>?> atualizarPedidoDoArmazenamento(
+    int pedidoId,
+  ) async {
+    final pedidos = await listar();
+    for (final pedido in pedidos) {
+      if ((pedido['id_pedido'] as num?)?.toInt() == pedidoId) return pedido;
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> cancelar(
     Map<String, dynamic> pedido, {
     String? motivo,

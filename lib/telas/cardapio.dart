@@ -7,12 +7,14 @@ class CardapioPage extends StatefulWidget {
   final String mesa;
   final int? mesaId;
   final String garcom;
+  final bool modoSelecao;
 
   const CardapioPage({
     super.key,
     required this.mesa,
     this.mesaId,
     required this.garcom,
+    this.modoSelecao = false,
   });
 
   @override
@@ -752,6 +754,35 @@ class _CardapioPageState extends State<CardapioPage> {
     return total;
   }
 
+  void _continuarComItens() {
+    if (itensPedido.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Adicione pelo menos um produto ao pedido.'),
+        ),
+      );
+      return;
+    }
+    if (widget.modoSelecao) {
+      Navigator.pop(
+        context,
+        itensPedido.map((item) => Map<String, dynamic>.from(item)).toList(),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PedidoPage(
+          mesa: widget.mesa,
+          mesaId: widget.mesaId,
+          garcom: widget.garcom,
+          itens: itensPedido,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -771,30 +802,7 @@ class _CardapioPageState extends State<CardapioPage> {
             children: [
               IconButton(
                 icon: const Icon(Icons.receipt_long, size: 28),
-                onPressed: () {
-                  if (itensPedido.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Adicione pelo menos um produto ao pedido.',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PedidoPage(
-                        mesa: widget.mesa,
-                        mesaId: widget.mesaId,
-                        garcom: widget.garcom,
-                        itens: itensPedido,
-                      ),
-                    ),
-                  );
-                },
+                onPressed: _continuarComItens,
               ),
 
               if (quantidadeTotal() > 0)
@@ -1038,7 +1046,11 @@ class _CardapioPageState extends State<CardapioPage> {
                                     foregroundColor: Colors.white,
                                   ),
 
-                                  child: const Text('Adicionar ao pedido'),
+                                  child: Text(
+                                    widget.modoSelecao
+                                        ? 'Adicionar nesta rodada'
+                                        : 'Adicionar ao pedido',
+                                  ),
                                 ),
                               ),
                             ],
@@ -1053,6 +1065,22 @@ class _CardapioPageState extends State<CardapioPage> {
           ),
         ],
       ),
+      bottomNavigationBar: widget.modoSelecao
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: FilledButton.icon(
+                  onPressed: itensPedido.isEmpty ? null : _continuarComItens,
+                  icon: const Icon(Icons.playlist_add_check),
+                  label: const Text('Adicionar itens ao pedido'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                    backgroundColor: const Color(0xFF7B1E2B),
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

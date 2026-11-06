@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/auth_controller.dart';
 import '../controllers/pedido_controller.dart';
 import 'acompanhamento.dart';
-import 'equipe.dart';
 import 'mesas.dart';
+import 'reservas.dart';
 
 class InicioPage extends StatelessWidget {
   final String nomeGarcom;
@@ -13,9 +12,9 @@ class InicioPage extends StatelessWidget {
 
   const InicioPage({
     super.key,
-    required this.nomeGarcom,
-    required this.idUsuario,
-    required this.cargo,
+    this.nomeGarcom = 'Atendente',
+    this.idUsuario = 'local',
+    this.cargo = 'atendente',
   });
 
   Future<void> _abrirAcompanhamento(BuildContext context) async {
@@ -63,26 +62,6 @@ class InicioPage extends StatelessWidget {
           ),
         ],
       ),
-      actions: [
-        if (AuthController().podeGerenciarEquipe(cargo))
-          IconButton(
-            tooltip: 'Gerenciar equipe',
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => EquipePage(idGerente: idUsuario),
-              ),
-            ),
-            icon: const Icon(Icons.groups_2_outlined),
-          ),
-        IconButton(
-          tooltip: 'Sair da conta',
-          onPressed: () =>
-              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false),
-          icon: const Icon(Icons.logout_rounded),
-        ),
-        const SizedBox(width: 8),
-      ],
     ),
     body: LayoutBuilder(
       builder: (context, constraints) => Center(
@@ -143,7 +122,7 @@ class InicioPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Benvenuto, ${nomeGarcom.split(' ').first}!',
+                          'Bem-vindo, ${nomeGarcom.split(' ').first}!',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 27,
@@ -159,21 +138,23 @@ class InicioPage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 22),
-                        Row(
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 7,
+                          runSpacing: 4,
                           children: [
                             const Icon(
-                              Icons.verified_user_outlined,
+                              Icons.storefront_outlined,
                               color: Color(0xFFEADADD),
                               size: 17,
                             ),
-                            const SizedBox(width: 7),
-                            Flexible(
-                              child: Text(
-                                'ID de usuário: $idUsuario',
-                                style: const TextStyle(
-                                  color: Color(0xFFEADADD),
-                                  fontSize: 13,
-                                ),
+                            Text(
+                              idUsuario == 'local'
+                                  ? 'Modo operacional local · sem login obrigatório'
+                                  : 'Operação local · ID $idUsuario',
+                              style: const TextStyle(
+                                color: Color(0xFFEADADD),
+                                fontSize: 13,
                               ),
                             ),
                           ],
@@ -199,10 +180,12 @@ class InicioPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               if (constraints.maxWidth >= 620)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 14,
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: (constraints.maxWidth - 14) / 2,
                       child: _ActionCard(
                         icon: Icons.add_shopping_cart_rounded,
                         title: 'Novo pedido',
@@ -211,8 +194,18 @@ class InicioPage extends StatelessWidget {
                         onTap: () => _novoPedido(context),
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
+                    SizedBox(
+                      width: (constraints.maxWidth - 14) / 2,
+                      child: _ActionCard(
+                        icon: Icons.event_seat_outlined,
+                        title: 'Atender reserva',
+                        subtitle: 'Localize o cliente e abra o pedido da mesa.',
+                        tone: const Color(0xFFB17B36),
+                        onTap: () => _abrirReservas(context),
+                      ),
+                    ),
+                    SizedBox(
+                      width: (constraints.maxWidth - 14) / 2,
                       child: _ActionCard(
                         icon: Icons.receipt_long_rounded,
                         title: 'Acompanhar pedidos',
@@ -230,6 +223,14 @@ class InicioPage extends StatelessWidget {
                   subtitle: 'Selecione uma mesa e monte o pedido.',
                   tone: const Color(0xFF7B1E2B),
                   onTap: () => _novoPedido(context),
+                ),
+                const SizedBox(height: 12),
+                _ActionCard(
+                  icon: Icons.event_seat_outlined,
+                  title: 'Atender reserva',
+                  subtitle: 'Localize o cliente e abra o pedido da mesa.',
+                  tone: const Color(0xFFB17B36),
+                  onTap: () => _abrirReservas(context),
                 ),
                 const SizedBox(height: 12),
                 _ActionCard(
@@ -300,6 +301,13 @@ class InicioPage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => MesasPage(garcom: nomeGarcom)),
+    );
+  }
+
+  void _abrirReservas(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ReservasPage(atendente: nomeGarcom)),
     );
   }
 }

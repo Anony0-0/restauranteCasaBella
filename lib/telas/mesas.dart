@@ -7,7 +7,7 @@ import 'cardapio.dart';
 class MesasPage extends StatefulWidget {
   final String garcom;
 
-  const MesasPage({super.key, required this.garcom});
+  const MesasPage({super.key, this.garcom = 'Atendente'});
 
   @override
   State<MesasPage> createState() => _MesasPageState();

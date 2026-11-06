@@ -1,190 +1,380 @@
 import 'dart:convert';
-import 'dart:math';
 
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/mesa.dart';
+import '../servicos/cozinha_service.dart';
 
-/// Persistência offline do app. A API central pode substituir esta camada.
+/// Persistência local do app para mesas e pedidos.
 class LocalRepository {
-  static const _usuariosKey = 'casa_bella_colaboradores';
   static const _pedidosKey = 'casa_bella_pedidos';
   static const _mesasKey = 'casa_bella_mesas';
+  static const _reservasKey = 'casa_bella_reservas';
 
-  static String _hashSenha(String senha, String salt) =>
-      sha256.convert(utf8.encode('$salt:$senha')).toString();
-
-  static Future<bool> temColaboradores() async {
+  static Future<void> limparDadosTestes() async {
     final prefs = await SharedPreferences.getInstance();
-    final usuarios = await _usuariosComGerenteInicial(prefs);
-    return usuarios.isNotEmpty;
+    await prefs.remove(_pedidosKey);
+    await prefs.remove(_mesasKey);
+    await prefs.remove(_reservasKey);
   }
 
-  static Future<List<Map<String, dynamic>>> _usuariosComGerenteInicial(
-    SharedPreferences prefs,
-  ) async {
-    final usuarios = (prefs.getStringList(_usuariosKey) ?? [])
-        .map((item) => jsonDecode(item) as Map<String, dynamic>)
+  static Future<Map<String, dynamic>> criarMesaTeste({
+    required int capacidade,
+  }) async {
+    final mesas = await listarMesas();
+    final id =
+        (mesas
+            .map((mesa) => (mesa['id_mesa'] as num?)?.toInt() ?? 0)
+            .fold<int>(0, (maior, idMesa) => idMesa > maior ? idMesa : maior) +
+        1);
+    final mesa = <String, dynamic>{
+      'id_mesa': id,
+      'capacidade': capacidade,
+      'reservado': false,
+    };
+    mesas.add(mesa);
+    await _salvarMesas(mesas);
+    return mesa;
+  }
+
+  static Future<List<Map<String, dynamic>>> listarReservas() async {
+    final prefs = await SharedPreferences.getInstance();
+    final reservas = (prefs.getStringList(_reservasKey) ?? [])
+        .map((item) => Map<String, dynamic>.from(jsonDecode(item) as Map))
         .toList();
-    var alterado = false;
-    var proximoId =
-        usuarios
-            .map(
-              (usuario) => int.tryParse('${usuario['id_usuario'] ?? ''}') ?? 0,
-            )
-            .fold<int>(0, (maior, id) => id > maior ? id : maior) +
-        1;
-    for (final usuario in usuarios) {
-      final idExistente = int.tryParse('${usuario['id_usuario'] ?? ''}');
-      if (idExistente == null || idExistente <= 0) {
-        // Migra cadastros offline antigos que usavam CPF como identificador.
-        usuario['id_usuario'] = proximoId++;
-        alterado = true;
-      } else {
-        usuario['id_usuario'] = idExistente;
-      }
-    }
-    if (usuarios.isNotEmpty &&
-        !usuarios.any(
-          (usuario) => cargoPodeGerenciarEquipe(usuario['cargo']?.toString()),
-        )) {
-      // Compatibilidade: em instalações antigas, o primeiro colaborador passa
-      // a administrar a equipe, pois a versão anterior não tinha perfis.
-      usuarios.first['cargo'] = 'Gerente';
-      alterado = true;
-    }
-    if (alterado) {
-      await prefs.setStringList(
-        _usuariosKey,
-        usuarios.map((usuario) => jsonEncode(usuario)).toList(),
+    reservas.sort((a, b) {
+      final primeiro = a['horario']?.toString() ?? '';
+      final segundo = b['horario']?.toString() ?? '';
+      return segundo.compareTo(primeiro);
+    });
+    return reservas;
+  }
+
+  static Future<Map<String, dynamic>> criarReserva({
+    required String nomeCliente,
+    required String telefone,
+    required String email,
+    required int qtdPessoas,
+    required DateTime horario,
+    int? idMesa,
+    String status = 'pendente',
+  }) async {
+    if (qtdPessoas <= 0) {
+      throw ArgumentError(
+        'A quantidade de pessoas precisa ser maior que zero.',
       );
     }
-    return usuarios;
+    final reservas = await listarReservas();
+    final proximoId = reservas.isEmpty
+        ? 1
+        : (reservas
+                  .map(
+                    (reserva) => (reserva['id_reserva'] as num?)?.toInt() ?? 0,
+                  )
+                  .fold<int>(0, (maior, id) => id > maior ? id : maior) +
+              1);
+    final reserva = <String, dynamic>{
+      'id_reserva': proximoId,
+      'nome_cliente': nomeCliente.trim(),
+      'telefone': telefone,
+      'email': email,
+      'horario': horario.toUtc().toIso8601String(),
+      'qtd_pessoas': qtdPessoas,
+      'id_mesa': idMesa,
+      'status': status,
+    };
+    reservas.add(reserva);
+    await _salvarReservas(reservas);
+    return reserva;
   }
 
-  static bool cargoPodeGerenciarEquipe(String? cargo) => const {
-    'gerente',
-    'gerente geral',
-    'administrador',
-    'admin',
-  }.contains(cargo?.trim().toLowerCase());
-
-  static Future<List<Map<String, String>>> listarColaboradores() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (await _usuariosComGerenteInicial(prefs))
-        .map(
-          (usuario) => {
-            'id_usuario': '${usuario['id_usuario'] ?? ''}',
-            'nome': usuario['nome']?.toString() ?? '',
-            'cargo': usuario['cargo']?.toString() ?? 'Atendente',
-            'admissao': usuario['admissao']?.toString() ?? '',
-          },
+  static Future<List<Map<String, dynamic>>> pesquisarReservasPorNome(
+    String nome,
+  ) async {
+    final filtro = nome.trim().toLowerCase();
+    if (filtro.isEmpty) return listarReservas();
+    final reservas = await listarReservas();
+    return reservas
+        .where(
+          (item) => (item['nome_cliente']?.toString() ?? '')
+              .toLowerCase()
+              .contains(filtro),
         )
-        .toList()
-      ..sort((a, b) => a['nome']!.compareTo(b['nome']!));
+        .toList();
   }
 
-  static Future<String?> removerColaborador({
-    required String idResponsavel,
-    required String idColaborador,
+  static Future<Map<String, dynamic>> confirmarReserva({
+    required int reservaId,
+    required int mesaId,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuarios = await _usuariosComGerenteInicial(prefs);
-    final responsavelId = int.tryParse(idResponsavel);
-    final colaboradorId = int.tryParse(idColaborador);
-    Map<String, dynamic>? responsavel;
-    for (final usuario in usuarios) {
-      if (usuario['id_usuario'] == responsavelId) {
-        responsavel = usuario;
-        break;
+    final reservas = await listarReservas();
+    final index = reservas.indexWhere(
+      (reserva) => (reserva['id_reserva'] as num?)?.toInt() == reservaId,
+    );
+    if (index < 0) {
+      throw StateError('Reserva não encontrada.');
+    }
+
+    final reserva = Map<String, dynamic>.from(reservas[index]);
+    final statusAtual = reserva['status']?.toString().toLowerCase();
+    if (statusAtual == 'concluida' || statusAtual == 'cancelada') {
+      throw StateError('A reserva já foi concluída ou cancelada.');
+    }
+
+    final mesas = await listarMesas();
+    final mesaIndex = mesas.indexWhere(
+      (mesa) => (mesa['id_mesa'] as num?)?.toInt() == mesaId,
+    );
+    if (mesaIndex < 0) {
+      throw StateError('Mesa não encontrada.');
+    }
+
+    final mesa = Map<String, dynamic>.from(mesas[mesaIndex]);
+    final capacidade = (mesa['capacidade'] as num?)?.toInt() ?? 0;
+    final qtdPessoas = (reserva['qtd_pessoas'] as num?)?.toInt() ?? 0;
+    if (capacidade < qtdPessoas) {
+      throw StateError(
+        'A mesa não comporta a quantidade de pessoas da reserva.',
+      );
+    }
+
+    final mesaOcupada = (mesa['reservado'] as bool?) ?? false;
+    if (mesaOcupada) {
+      throw StateError('A mesa selecionada já está ocupada.');
+    }
+
+    reserva['id_mesa'] = mesaId;
+    reserva['status'] = 'confirmada';
+    mesas[mesaIndex]['reservado'] = true;
+    reservas[index] = reserva;
+
+    await _salvarReservas(reservas);
+    await _salvarMesas(mesas);
+    return reserva;
+  }
+
+  static Future<Map<String, dynamic>> abrirPedidoParaReserva({
+    required int reservaId,
+    required int mesaId,
+    required String atendente,
+  }) async {
+    final reserva = await _buscarReserva(reservaId);
+    final statusReserva = reserva['status']?.toString().toLowerCase();
+    if (!const {
+      'confirmada',
+      'pendente',
+      'em_andamento',
+      'aberto',
+    }.contains(statusReserva)) {
+      throw StateError(
+        'A reserva precisa estar confirmada antes de abrir o pedido.',
+      );
+    }
+
+    final pedidos = await listarPedidos();
+    final pedidoAberto = firstWhereOrNull<Map<String, dynamic>>(
+      pedidos,
+      (pedido) => _temPedidoAbertoParaReserva([pedido], reservaId),
+    );
+    if (pedidoAberto != null) {
+      return Map<String, dynamic>.from(pedidoAberto);
+    }
+
+    final agora = DateTime.now().toUtc();
+    final id = pedidos.isEmpty
+        ? 1
+        : (pedidos
+                  .map((pedido) => (pedido['id_pedido'] as num?)?.toInt() ?? 0)
+                  .fold<int>(
+                    0,
+                    (maior, valor) => valor > maior ? valor : maior,
+                  ) +
+              1);
+    final novoPedido = <String, dynamic>{
+      'id': id.toString(),
+      'id_pedido': id,
+      'id_cliente': reserva['id_cliente'],
+      'id_mesa': mesaId,
+      'mesa': 'Mesa $mesaId',
+      'atendente': atendente,
+      'garcom': atendente,
+      'id_reserva': reservaId,
+      'data_pedido': agora.toIso8601String(),
+      'criadoEm': agora.toIso8601String(),
+      'status': 'aberto',
+      'valor_total': 0.0,
+      'itens': <Map<String, dynamic>>[],
+    };
+    pedidos.insert(0, novoPedido);
+    await _salvarPedidos(pedidos);
+    return novoPedido;
+  }
+
+  static Future<Map<String, dynamic>> adicionarItensAoPedido({
+    required int pedidoId,
+    required List<Map<String, dynamic>> itens,
+  }) async {
+    if (itens.isEmpty) {
+      throw ArgumentError(
+        'O pedido precisa conter itens para serem adicionados.',
+      );
+    }
+
+    final pedidos = await listarPedidos();
+    final indice = pedidos.indexWhere(
+      (pedido) => (pedido['id_pedido'] as num?)?.toInt() == pedidoId,
+    );
+    if (indice < 0) {
+      throw StateError('Pedido não encontrado.');
+    }
+
+    final pedido = Map<String, dynamic>.from(pedidos[indice]);
+    final status = pedido['status']?.toString().toLowerCase();
+    if (status == 'concluido' || status == 'cancelado') {
+      throw StateError('Pedido fechado não pode receber novos itens.');
+    }
+
+    final itensAtuais = (pedido['itens'] as List<dynamic>? ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+
+    for (final item in itens) {
+      final produtoId = (item['id_produto'] as num?)?.toInt() ?? 0;
+      final quantidade = (item['quantidade'] as num?)?.toInt() ?? 1;
+      final preco =
+          (item['preco_unitario'] as num?)?.toDouble() ??
+          (item['preco'] as num?)?.toDouble() ??
+          0.0;
+      if (produtoId <= 0 || quantidade <= 0) {
+        throw ArgumentError('Produto e quantidade são obrigatórios.');
+      }
+      final indiceItem = itensAtuais.indexWhere(
+        (atual) => (atual['id_produto'] as num?)?.toInt() == produtoId,
+      );
+      if (indiceItem >= 0) {
+        final atual = Map<String, dynamic>.from(itensAtuais[indiceItem]);
+        atual['quantidade'] =
+            ((atual['quantidade'] as num?)?.toInt() ?? 0) + quantidade;
+        atual['preco_unitario'] = preco;
+        if (item['nome'] != null) atual['nome'] = item['nome'];
+        itensAtuais[indiceItem] = atual;
+      } else {
+        itensAtuais.add({
+          'id_produto': produtoId,
+          if (item['nome'] != null) 'nome': item['nome'],
+          'quantidade': quantidade,
+          'preco_unitario': preco,
+        });
       }
     }
 
-    if (responsavel == null ||
-        !cargoPodeGerenciarEquipe(responsavel['cargo']?.toString())) {
-      return 'Somente um gerente ou administrador pode remover colaboradores.';
-    }
-    if (responsavelId == colaboradorId) {
-      return 'Não é possível remover a própria conta durante a sessão.';
-    }
-
-    final indice = usuarios.indexWhere(
-      (usuario) => usuario['id_usuario'] == colaboradorId,
+    final total = itensAtuais.fold<double>(
+      0,
+      (soma, item) =>
+          soma +
+          ((item['preco_unitario'] as num?)?.toDouble() ?? 0.0) *
+              ((item['quantidade'] as num?)?.toInt() ?? 0),
     );
-    if (indice < 0) return 'Colaborador não encontrado.';
 
-    final colaborador = usuarios[indice];
-    if (cargoPodeGerenciarEquipe(colaborador['cargo']?.toString())) {
-      final quantidadeGestores = usuarios
-          .where(
-            (usuario) => cargoPodeGerenciarEquipe(usuario['cargo']?.toString()),
-          )
-          .length;
-      if (quantidadeGestores <= 1) {
-        return 'Não é possível remover o último gerente ou administrador.';
+    pedido['itens'] = itensAtuais;
+    pedido['valor_total'] = total;
+    pedido['status'] = pedido['status']?.toString() ?? 'aberto';
+    pedidos[indice] = pedido;
+    await _salvarPedidos(pedidos);
+    return pedido;
+  }
+
+  static Future<Map<String, dynamic>> fecharPedido({
+    required int pedidoId,
+    int? reservaId,
+  }) async {
+    final pedidos = await listarPedidos();
+    final indice = pedidos.indexWhere(
+      (pedido) => (pedido['id_pedido'] as num?)?.toInt() == pedidoId,
+    );
+    if (indice < 0) {
+      throw StateError('Pedido não encontrado.');
+    }
+
+    final pedido = Map<String, dynamic>.from(pedidos[indice]);
+    final status = pedido['status']?.toString().toLowerCase();
+    if (status == 'concluido' || status == 'cancelado') {
+      throw StateError('O pedido já foi fechado ou cancelado.');
+    }
+
+    final itens = (pedido['itens'] as List<dynamic>? ?? const [])
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+    final total = itens.fold<double>(
+      0,
+      (soma, item) =>
+          soma +
+          ((item['preco_unitario'] as num?)?.toDouble() ?? 0.0) *
+              ((item['quantidade'] as num?)?.toInt() ?? 0),
+    );
+
+    pedido['valor_total'] = total;
+    pedido['status'] = 'concluido';
+    pedidos[indice] = pedido;
+    await _salvarPedidos(pedidos);
+
+    if (reservaId != null) {
+      final reservas = await listarReservas();
+      final indexReserva = reservas.indexWhere(
+        (reserva) => (reserva['id_reserva'] as num?)?.toInt() == reservaId,
+      );
+      if (indexReserva >= 0) {
+        final reserva = Map<String, dynamic>.from(reservas[indexReserva]);
+        reserva['status'] = 'concluida';
+        reservas[indexReserva] = reserva;
+        await _salvarReservas(reservas);
       }
     }
 
-    usuarios.removeAt(indice);
-    await prefs.setStringList(
-      _usuariosKey,
-      usuarios.map((usuario) => jsonEncode(usuario)).toList(),
-    );
-    return null;
-  }
-
-  static Future<({int? idUsuario, String? erro})> cadastrar({
-    required String nome,
-    required String senha,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuarios = await _usuariosComGerenteInicial(prefs);
-    final salt = List<int>.generate(16, (_) => Random.secure().nextInt(256));
-    final saltTexto = base64UrlEncode(salt);
-    final idUsuario =
-        usuarios
-            .map(
-              (usuario) => int.tryParse('${usuario['id_usuario'] ?? ''}') ?? 0,
-            )
-            .fold<int>(0, (maior, id) => id > maior ? id : maior) +
-        1;
-    usuarios.add({
-      'id_usuario': idUsuario,
-      'nome': nome.trim(),
-      // O primeiro cadastro inicializa o perfil gerente; novos cadastros são atendentes.
-      'cargo': usuarios.isEmpty ? 'Gerente' : 'Atendente',
-      'admissao': DateTime.now().toIso8601String().substring(0, 10),
-      'salt': saltTexto,
-      'senhaHash': _hashSenha(senha, saltTexto),
-    });
-    await prefs.setStringList(
-      _usuariosKey,
-      usuarios.map((usuario) => jsonEncode(usuario)).toList(),
-    );
-    return (idUsuario: idUsuario, erro: null);
-  }
-
-  static Future<Map<String, String>?> entrar({
-    required String idUsuario,
-    required String senha,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-    final usuarios = await _usuariosComGerenteInicial(prefs);
-    final id = int.tryParse(idUsuario.trim());
-    if (id == null || id <= 0) return null;
-    for (final usuario in usuarios) {
-      if (usuario['id_usuario'] == id &&
-          usuario['senhaHash'] ==
-              _hashSenha(senha, usuario['salt'] as String)) {
-        return {
-          'nome': usuario['nome'] as String,
-          'id_usuario': id.toString(),
-          'cargo': usuario['cargo'] as String? ?? 'Atendente',
-        };
+    final mesaId = pedido['id_mesa'] as int?;
+    if (mesaId != null) {
+      final mesas = await listarMesas();
+      final indexMesa = mesas.indexWhere(
+        (mesa) => (mesa['id_mesa'] as num?)?.toInt() == mesaId,
+      );
+      if (indexMesa >= 0) {
+        mesas[indexMesa]['reservado'] = false;
+        await _salvarMesas(mesas);
       }
+    }
+
+    return pedido;
+  }
+
+  static Future<Map<String, dynamic>> _buscarReserva(int reservaId) async {
+    final reservas = await listarReservas();
+    final reserva = reservas.firstWhere(
+      (item) => (item['id_reserva'] as num?)?.toInt() == reservaId,
+      orElse: () => throw StateError('Reserva não encontrada.'),
+    );
+    return Map<String, dynamic>.from(reserva);
+  }
+
+  static bool _temPedidoAbertoParaReserva(
+    List<Map<String, dynamic>> pedidos,
+    int reservaId,
+  ) => pedidos.any(
+    (pedido) =>
+        (pedido['id_reserva'] as num?)?.toInt() == reservaId &&
+        const {
+          'aberto',
+          'pendente',
+          'em_andamento',
+        }.contains(pedido['status']?.toString().toLowerCase()),
+  );
+
+  static T? firstWhereOrNull<T>(
+    Iterable<T> iterable,
+    bool Function(T element) test,
+  ) {
+    for (final item in iterable) {
+      if (test(item)) return item;
     }
     return null;
   }
@@ -213,9 +403,28 @@ class LocalRepository {
       mesasJson = mesas.map(jsonEncode).toList();
       await prefs.setStringList(_mesasKey, mesasJson);
     }
-    return mesasJson
+
+    final mesas = mesasJson
         .map((item) => Map<String, dynamic>.from(jsonDecode(item) as Map))
-        .toList()
+        .toList();
+    final reservas = await listarReservas();
+    for (final mesa in mesas) {
+      final idMesa = (mesa['id_mesa'] as num?)?.toInt();
+      if (idMesa == null) continue;
+      final ocupada = reservas.any(
+        (reserva) =>
+            (reserva['id_mesa'] as num?)?.toInt() == idMesa &&
+            const {
+              'pendente',
+              'confirmada',
+              'em_andamento',
+              'aberto',
+            }.contains(reserva['status']?.toString().toLowerCase()),
+      );
+      mesa['reservado'] = ocupada;
+    }
+    await _salvarMesas(mesas);
+    return mesas
       ..sort((a, b) => (a['id_mesa'] as int).compareTo(b['id_mesa'] as int));
   }
 
@@ -239,12 +448,14 @@ class LocalRepository {
         'quantidade': item['quantidade'] as int? ?? 1,
       };
     }).toList();
+
     final total = itensBanco.fold<double>(
       0,
       (soma, item) =>
           soma +
           (item['preco_unitario'] as double) * (item['quantidade'] as int),
     );
+
     final pedido = <String, dynamic>{
       'id': id.toString(),
       'id_pedido': id,
@@ -259,80 +470,55 @@ class LocalRepository {
       'valor_total': total,
       'itens': itensBanco,
     };
+
     final pedidos = await listarPedidos();
     pedidos.insert(0, pedido);
     await _salvarPedidos(pedidos);
 
-    const endpoint = String.fromEnvironment('KITCHEN_API_URL');
-    if (endpoint.isEmpty) {
-      pedido['status'] = 'somente_local';
-      await _salvarPedidos(pedidos);
-      return pedido;
-    }
-
     try {
-      final base = endpoint.endsWith('/') ? endpoint : '$endpoint/';
-      final resposta = await http
-          .post(
-            Uri.parse('${base}orders'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(pedido),
-          )
-          .timeout(const Duration(seconds: 12));
-      if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
-        throw Exception('HTTP ${resposta.statusCode}');
+      final pedidoComIntegracao = await CozinhaService().enviarPedido(pedido);
+      final pedidosAtualizados = await listarPedidos();
+      final indice = pedidosAtualizados.indexWhere(
+        (item) => item['id'] == pedido['id'],
+      );
+      if (indice >= 0) {
+        pedidosAtualizados[indice] = pedidoComIntegracao;
+        await _salvarPedidos(pedidosAtualizados);
       }
-      pedido['status'] = 'enviado';
-      pedido['integradoCozinha'] = true;
-      if (resposta.body.trim().isNotEmpty) {
-        final conteudo = jsonDecode(resposta.body);
-        if (conteudo is Map<String, dynamic> && conteudo['id'] != null) {
-          pedido['idCozinha'] = conteudo['id'].toString();
-        }
-      }
+      return pedidoComIntegracao;
     } catch (erro) {
-      pedido['status'] = 'falha_no_envio';
-      pedido['erroEnvio'] = erro.toString();
+      debugPrint('Não foi possível enviar o pedido à cozinha: $erro');
+      final persistido = Map<String, dynamic>.from(pedido);
+      persistido['status'] = 'falha_no_envio';
+      persistido['erroEnvio'] = erro.toString();
+      final pedidosAtualizados = await listarPedidos();
+      final indice = pedidosAtualizados.indexWhere(
+        (item) => item['id'] == pedido['id'],
+      );
+      if (indice >= 0) {
+        pedidosAtualizados[indice] = persistido;
+        await _salvarPedidos(pedidosAtualizados);
+      }
+      return persistido;
     }
-    await _salvarPedidos(pedidos);
-    return pedido;
   }
 
   static Future<Map<String, dynamic>> atualizarStatus(
     Map<String, dynamic> pedido,
   ) async {
-    const endpoint = String.fromEnvironment('KITCHEN_API_URL');
-    if (endpoint.isEmpty ||
-        _statusFinal(pedido['status']?.toString()) ||
-        (pedido['integradoCozinha'] != true &&
-            pedido['idCozinha'] == null &&
-            !_statusConsultavel(pedido['status']?.toString()))) {
+    final atualizacao = await CozinhaService().consultarStatus(pedido);
+    final statusAtual = atualizacao['status']?.toString();
+    if (statusAtual == null || statusAtual == pedido['status']) {
       return pedido;
     }
-    try {
-      final base = endpoint.endsWith('/') ? endpoint : '$endpoint/';
-      final id = pedido['idCozinha'] ?? pedido['id'];
-      final resposta = await http
-          .get(Uri.parse('${base}orders/$id'))
-          .timeout(const Duration(seconds: 10));
-      if (resposta.statusCode == 200) {
-        final conteudo = jsonDecode(resposta.body);
-        if (conteudo is Map<String, dynamic> && conteudo['status'] != null) {
-          pedido['status'] = conteudo['status'].toString();
-          final pedidos = await listarPedidos();
-          final indice = pedidos.indexWhere(
-            (item) => item['id'] == pedido['id'],
-          );
-          if (indice >= 0) {
-            pedidos[indice] = pedido;
-            await _salvarPedidos(pedidos);
-          }
-        }
-      }
-    } catch (erro) {
-      debugPrint('Não foi possível consultar o status do pedido: $erro');
+
+    final pedidos = await listarPedidos();
+    final indice = pedidos.indexWhere((item) => item['id'] == pedido['id']);
+    if (indice >= 0) {
+      pedidos[indice] = atualizacao;
+      await _salvarPedidos(pedidos);
     }
-    return pedido;
+    return atualizacao;
   }
 
   static bool podeAlterarPedido(Map<String, dynamic> pedido) =>
@@ -356,31 +542,6 @@ class LocalRepository {
     'in_progress',
   }.contains(status?.toLowerCase());
 
-  static bool _statusConsultavel(String? status) => const {
-    'enviado',
-    'pendente',
-    'aberto',
-    'pending',
-    'accepted',
-    'recebido',
-    'queued',
-    'preparando',
-    'em_preparo',
-    'preparing',
-    'processing',
-    'in_progress',
-  }.contains(status?.toLowerCase());
-
-  static bool _statusFinal(String? status) => const {
-    'pronto',
-    'ready',
-    'entregue',
-    'completed',
-    'cancelado',
-    'cancelled',
-    'canceled',
-  }.contains(status?.toLowerCase());
-
   static Future<Map<String, dynamic>> alterarPedido(
     Map<String, dynamic> pedido, {
     required List<Map<String, dynamic>> itens,
@@ -390,10 +551,6 @@ class LocalRepository {
         'Pedidos prontos, entregues ou cancelados não podem ser alterados.',
       );
     }
-    if (itens.isEmpty) {
-      throw ArgumentError('O pedido precisa conter ao menos um item.');
-    }
-
     final itensAtualizados = itens.map((item) {
       final preco =
           (item['preco_unitario'] as num? ?? item['preco'] as num? ?? 0)
@@ -404,12 +561,14 @@ class LocalRepository {
       }
       return {...item, 'preco_unitario': preco, 'quantidade': quantidade};
     }).toList();
+
     final total = itensAtualizados.fold<double>(
       0,
       (soma, item) =>
           soma +
           (item['preco_unitario'] as double) * (item['quantidade'] as int),
     );
+
     final atualizado = {
       ...pedido,
       'itens': itensAtualizados,
@@ -417,7 +576,7 @@ class LocalRepository {
       'alteradoEm': DateTime.now().toUtc().toIso8601String(),
     };
 
-    await _enviarAtualizacaoCozinha(pedido, {
+    await CozinhaService().atualizarPedido(pedido, {
       'itens': itensAtualizados,
       'valor_total': total,
     });
@@ -434,6 +593,7 @@ class LocalRepository {
         'Pedidos prontos, entregues ou cancelados não podem ser cancelados.',
       );
     }
+
     final atualizado = {
       ...pedido,
       'status': 'cancelado',
@@ -441,44 +601,12 @@ class LocalRepository {
       'canceladoEm': DateTime.now().toUtc().toIso8601String(),
     };
 
-    await _enviarAtualizacaoCozinha(pedido, {
+    await CozinhaService().cancelarPedido(pedido, {
       'status': 'cancelado',
       if (motivo?.trim().isNotEmpty == true) 'motivo': motivo!.trim(),
     });
     await _salvarPedidoAtualizado(atualizado);
     return atualizado;
-  }
-
-  static Future<void> _enviarAtualizacaoCozinha(
-    Map<String, dynamic> pedido,
-    Map<String, dynamic> alteracoes,
-  ) async {
-    const endpoint = String.fromEnvironment('KITCHEN_API_URL');
-    if (endpoint.isEmpty ||
-        (pedido['integradoCozinha'] != true &&
-            pedido['idCozinha'] == null &&
-            !const {
-              'enviado',
-              'preparando',
-              'in_progress',
-              'em_preparo',
-            }.contains(pedido['status']?.toString().toLowerCase()))) {
-      return;
-    }
-    final base = endpoint.endsWith('/') ? endpoint : '$endpoint/';
-    final id = pedido['idCozinha'] ?? pedido['id'];
-    final resposta = await http
-        .patch(
-          Uri.parse('${base}orders/$id'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(alteracoes),
-        )
-        .timeout(const Duration(seconds: 12));
-    if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
-      throw Exception(
-        'A cozinha não confirmou a alteração (HTTP ${resposta.statusCode}).',
-      );
-    }
   }
 
   static Future<void> _salvarPedidoAtualizado(
@@ -491,6 +619,24 @@ class LocalRepository {
     }
     pedidos[indice] = atualizado;
     await _salvarPedidos(pedidos);
+  }
+
+  static Future<void> _salvarReservas(
+    List<Map<String, dynamic>> reservas,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _reservasKey,
+      reservas.map((reserva) => jsonEncode(reserva)).toList(),
+    );
+  }
+
+  static Future<void> _salvarMesas(List<Map<String, dynamic>> mesas) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _mesasKey,
+      mesas.map((mesa) => jsonEncode(mesa)).toList(),
+    );
   }
 
   static Future<void> _salvarPedidos(List<Map<String, dynamic>> pedidos) async {
