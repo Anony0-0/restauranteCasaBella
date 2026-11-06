@@ -57,6 +57,18 @@ public class ReservasDao {
         }
     }
 
+    // Confirma a chegada do cliente. Retorna 1 se confirmou, 0 se a reserva não estava pendente.
+    public int confirmarChegada(int idReserva) throws SQLException, ClassNotFoundException {
+        conectar();
+        try {
+            st = conectado.prepareStatement(
+                    "UPDATE reservas SET status = 'Confirmada' WHERE id_reserva = ? AND status = 'Pendente'");
+            st.setInt(1, idReserva);
+            return st.executeUpdate();
+        } finally {
+            conectado.close();
+        }
+    }
 
 
     // LISTAR RESERVAS
