@@ -1,9 +1,37 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.sql.ResultSet, java.sql.Timestamp, java.math.BigDecimal, java.text.SimpleDateFormat, java.util.Locale"%>
 <%!
     // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
     private String esc(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
+    // Formata data/hora vindas do banco (ex.: 24/09 · 20h15)
+    private String fmtData(Timestamp t, boolean comAno) {
+        if (t == null) return "—";
+        String padrao = comAno ? "dd/MM/yyyy · HH'h'mm" : "dd/MM · HH'h'mm";
+        return new SimpleDateFormat(padrao).format(t);
+    }
+
+    // Formata dinheiro (ex.: R$ 187,00)
+    private String fmtPreco(BigDecimal v) {
+        if (v == null) return "—";
+        return String.format(new Locale("pt", "BR"), "R$ %,.2f", v);
+    }
+
+    // Escolhe a classe CSS da "pílula" de status a partir do texto do status
+    private String statusClass(String status) {
+        if (status == null) return "is-pendente";
+        String s = status.toLowerCase();
+        if (s.contains("preparo"))                          return "is-preparo";
+        if (s.contains("conclu") || s.contains("confirm") || s.equals("disponivel")) return "is-concluido";
+        if (s.contains("cancel") || s.equals("indisponivel")) return "is-cancelado";
+        return "is-pendente";
+    }
+
+    private String rotuloDisponibilidade(String d) {
+        return "disponivel".equals(d) ? "Disponível" : "Indisponível";
     }
 %>
 <%
@@ -22,6 +50,16 @@
 
     String cargo = (String) request.getAttribute("cargo");
     if (cargo == null) cargo = (String) session.getAttribute("cargo");
+
+    // ResultSets enviados pelo servlet (request.setAttribute). Se algum vier
+    // null, o painel correspondente mostra "Nenhum registro".
+    ResultSet pedidos      = (ResultSet) request.getAttribute("pedidos");
+    ResultSet clientes     = (ResultSet) request.getAttribute("clientes");
+    ResultSet reservas     = (ResultSet) request.getAttribute("reservas");
+    ResultSet produtos     = (ResultSet) request.getAttribute("produtos");
+    ResultSet funcionarios = (ResultSet) request.getAttribute("funcionarios");
+
+    boolean achou; // controla a mensagem de "tabela vazia" em cada painel
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -41,19 +79,18 @@
 
 <!--
   Painel interno da equipe (funcionários), separado do site do cliente.
-  As três "abas" (Pedidos / Clientes / Funcionários) trocam de conteúdo
-  só com CSS, usando radio buttons escondidos — mesma ideia do menu
-  hambúrguer do cabeçalho, só que aqui com radio em vez de checkbox
-  porque só uma aba pode estar ativa por vez.
+  As "abas" (Pedidos / Clientes / Reservas / Produtos / Funcionários) trocam
+  de conteúdo só com CSS, usando radio buttons escondidos. Só uma aba pode
+  estar ativa por vez.
 
-  O nome e o cargo no topo já vêm de quem logou. Os dados das tabelas
-  abaixo ainda são exemplo (fixos no HTML): quando o DAO estiver pronto,
-  as linhas do tbody serão geradas a partir do banco.
+  Os dados de todas as tabelas vêm do servlet via request.setAttribute:
+  "pedidos", "clientes", "reservas", "produtos" e "funcionarios".
 -->
 
 <input type="radio" name="admin-tab" id="tab-pedidos" class="admin-tab-radio" checked />
 <input type="radio" name="admin-tab" id="tab-clientes" class="admin-tab-radio" />
 <input type="radio" name="admin-tab" id="tab-reservas" class="admin-tab-radio" />
+<input type="radio" name="admin-tab" id="tab-produtos" class="admin-tab-radio" />
 <input type="radio" name="admin-tab" id="tab-funcionarios" class="admin-tab-radio" />
 
 <div class="admin-shell">
@@ -98,16 +135,12 @@
 
             <!-- ============ PAINEL: PEDIDOS ============ -->
             <section class="admin-panel" id="panel-pedidos" aria-label="Pedidos">
-                <!--
-                  Exemplo de layout: as sub-abas, a busca, o "Exportar" e a paginação
-                  são só visuais — nenhum deles filtra ou faz nada de verdade ainda.
-                -->
                 <div class="admin-panel-header">
                     <div>
                         <h1>Pedidos</h1>
                         <p class="admin-panel-subtitle">Acompanhamento dos pedidos em andamento e finalizados.</p>
                     </div>
-                    <a href="#" class="btn btn-primary">Novo pedido</a>
+                    <label for="tab-reservas" class="btn btn-primary">Novo pedido</label>
                 </div>
 
                 <div class="admin-panel-card">
@@ -128,39 +161,65 @@
                             <label for="filtro-mesa">Mesa</label>
                             <select id="filtro-mesa">
                                 <option>Todas</option>
-                                <option>Mesa 2</option>
-                                <option>Mesa 6</option>
-                                <option>Mesa 9</option>
                             </select>
                         </div>
 
                         <div class="admin-filter-actions">
                             <a href="#" class="btn btn-outline">Buscar</a>
-                            <a href="#" class="btn btn-primary">Exportar</a>
                         </div>
                     </div>
 
                     <div class="admin-table-wrap">
                         <table class="admin-table">
+
                             <thead>
                             <tr>
                                 <th>Nº</th>
-                                <th>Cliente</th>
+                                <th>Nome Cliente</th>
+                                <th>Nº Reserva</th>
                                 <th>Mesa</th>
                                 <th>Data</th>
                                 <th>Status</th>
                                 <th>Total</th>
-                                <th></th>
+                                <th>Ações</th>
                             </tr>
                             </thead>
+
                             <tbody>
+
+                            <%
+                                achou = false;
+
+                                if (pedidos != null) {
+                                    while (pedidos.next()) {
+                                        achou = true;
+
+                                        String clientePedido = pedidos.getString("cliente");
+
+                                        int reservaPedido = pedidos.getInt("id_reserva");
+                                        boolean semReservaPedido = pedidos.wasNull();
+
+                                        int mesaPedido = pedidos.getInt("id_mesa");
+                                        boolean semMesaPedido = pedidos.wasNull();
+
+                                        String statusPedido = pedidos.getString("status");
+                            %>
+
                             <tr>
-                                <td>#1042</td>
-                                <td>Renata Prado</td>
-                                <td>Mesa 6</td>
-                                <td>24/09 · 20h15</td>
-                                <td><span class="status-pill is-preparo">Em preparo</span></td>
-                                <td>R$ 187,00</td>
+                                <td><%= pedidos.getInt("id_pedido") %></td>
+                                <td><%= clientePedido == null ? "—" : esc(clientePedido) %></td>
+                                <td><%= semReservaPedido ? "—" : reservaPedido %></td>
+                                <td><%= semMesaPedido ? "—" : "Mesa " + mesaPedido %></td>
+                                <td><%= fmtData(pedidos.getTimestamp("data_pedido"), false) %></td>
+
+                                <td>
+                                <span class="status-pill <%= statusClass(statusPedido) %>">
+                                <%= esc(statusPedido) %>
+                                </span>
+                                </td>
+
+                                <td><%= fmtPreco(pedidos.getBigDecimal("valor_total")) %></td>
+
                                 <td>
                                     <div class="admin-row-actions">
                                         <a href="#" class="chip-btn">Ver</a>
@@ -169,37 +228,22 @@
                                     </div>
                                 </td>
                             </tr>
+
+                            <%
+                                    }
+                                }
+
+                                if (!achou) {
+                            %>
                             <tr>
-                                <td>#1041</td>
-                                <td>Marco Fontana</td>
-                                <td>Mesa 2</td>
-                                <td>24/09 · 19h50</td>
-                                <td><span class="status-pill is-pendente">Pendente</span></td>
-                                <td>R$ 96,50</td>
-                                <td>
-                                    <div class="admin-row-actions">
-                                        <a href="#" class="chip-btn">Ver</a>
-                                        <a href="#" class="chip-btn">Editar</a>
-                                        <a href="#" class="chip-btn">Cancelar</a>
-                                    </div>
-                                </td>
+                                <td colspan="8">Nenhum pedido cadastrado.</td>
                             </tr>
-                            <tr>
-                                <td>#1040</td>
-                                <td>Lívia Torres</td>
-                                <td>Mesa 9</td>
-                                <td>24/09 · 19h20</td>
-                                <td><span class="status-pill is-concluido">Concluído</span></td>
-                                <td>R$ 243,00</td>
-                                <td>
-                                    <div class="admin-row-actions">
-                                        <a href="#" class="chip-btn">Ver</a>
-                                        <a href="#" class="chip-btn">Editar</a>
-                                        <a href="#" class="chip-btn">Cancelar</a>
-                                    </div>
-                                </td>
-                            </tr>
+                            <%
+                                }
+                            %>
+
                             </tbody>
+
                         </table>
                     </div>
 
@@ -212,6 +256,8 @@
                         <span>9</span>
                         <span>›</span>
                     </div>
+
+
                 </div>
             </section>
 
@@ -226,21 +272,25 @@
                     <table class="admin-table">
                         <thead>
                         <tr>
+                            <th>Nº</th>
                             <th>Nome</th>
                             <th>E-mail</th>
-                            <th>Senha</th>
                             <th>Telefone</th>
-                            <th>Cliente desde</th>
                             <th></th>
                         </tr>
                         </thead>
                         <tbody>
+                        <%
+                            achou = false;
+                            if (clientes != null) {
+                                while (clientes.next()) {
+                                    achou = true;
+                        %>
                         <tr>
-                            <td>Renata Prado</td>
-                            <td>renata.prado@email.com</td>
-                            <td>12345</td>
-                            <td>(11) 98888-1234</td>
-                            <td>12/03/2024</td>
+                            <td><%= clientes.getInt("id_cliente") %></td>
+                            <td><%= esc(clientes.getString("nome")) %></td>
+                            <td><%= esc(clientes.getString("email")) %></td>
+                            <td><%= esc(clientes.getString("telefone")) %></td>
                             <td>
                                 <div class="admin-row-actions">
                                     <a href="#">Ver</a>
@@ -248,58 +298,157 @@
                                 </div>
                             </td>
                         </tr>
-                        <tr>
-                            <td>Marco Fontana</td>
-                            <td>marco.fontana@email.com</td>
-                            <td>12345</td>
-                            <td>(11) 97777-5678</td>
-                            <td>28/07/2023</td>
-                            <td>
-                                <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Lívia Torres</td>
-                            <td>livia.torres@email.com</td>
-                            <td>12345</td>
-                            <td>(11) 96666-4321</td>
-                            <td>05/01/2025</td>
-                            <td>
-                                <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
-                                </div>
-                            </td>
-                        </tr>
+                        <%
+                                }
+                            }
+                            if (!achou) {
+                        %>
+                        <tr><td colspan="5">Nenhum cliente cadastrado.</td></tr>
+                        <% } %>
                         </tbody>
                     </table>
                 </div>
             </section>
 
             <!-- ============ PAINEL: RESERVAS ============ -->
-            <SECTION class="admin-panel" id="panel-reservas" aria-label="Reservas">
-                <h1>Reservas</h1>
-            </SECTION>
+            <section class="admin-panel" id="panel-reservas" aria-label="Reservas">
+                <div class="admin-panel-header">
+                    <h1>Reservas</h1>
+                    <a href="#" class="btn btn-primary">Nova reserva</a>
+                </div>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Cliente</th>
+                            <th>Contato</th>
+                            <th>Horário</th>
+                            <th>Pessoas</th>
+                            <th>Mesa</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <%
+                            achou = false;
+                            if (reservas != null) {
+                                while (reservas.next()) {
+                                    achou = true;
+                                    String clienteReserva = reservas.getString("cliente");
+                                    String emailReserva = reservas.getString("email");
+                                    String telReserva = reservas.getString("telefone");
+                                    int mesaReserva = reservas.getInt("id_mesa");
+                                    boolean semMesaReserva = reservas.wasNull();
+                                    String statusReserva = reservas.getString("status");
+                        %>
+                        <tr>
+                            <td>#<%= reservas.getInt("id_reserva") %></td>
+                            <td><%= clienteReserva == null ? "—" : esc(clienteReserva) %></td>
+                            <td>
+                                <%= esc(telReserva) %>
+                                <% if (emailReserva != null && !emailReserva.isEmpty()) { %>
+                                <br /><%= esc(emailReserva) %>
+                                <% } %>
+                            </td>
+                            <td><%= fmtData(reservas.getTimestamp("horario"), true) %></td>
+                            <td><%= reservas.getInt("qtd_pessoas") %></td>
+                            <td><%= semMesaReserva ? "—" : "Mesa " + mesaReserva %></td>
+                            <td><span class="status-pill <%= statusClass(statusReserva) %>"><%= esc(statusReserva) %></span></td>
+                            <%
+                                int idReservaLinha = reservas.getInt("id_reserva");
+                            %>
+                            <td>
+                                <div class="admin-row-actions">
+                                    <a href="#">Ver</a>
+                                    <a href="#">Editar</a>
+                                    <% if ("confirmada".equalsIgnoreCase(statusReserva) && !semMesaReserva) { %>
+                                    <form action="ControlePedidos" method="post" style="display:inline">
+                                        <input type="hidden" name="origem" value="cadastrarPedido" />
+                                        <input type="hidden" name="id_reserva" value="<%= idReservaLinha %>" />
+                                        <button type="submit" class="chip-btn">Abrir pedido</button>
+                                    </form>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                        <%
+                                }
+                            }
+                            if (!achou) {
+                        %>
+                        <tr><td colspan="8">Nenhuma reserva encontrada.</td></tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- ============ PAINEL: PRODUTOS ============ -->
-            <SECTION class="admin-panel" id="panel-produtos" aria-label="Produtos">
-                <h1>Produtos</h1>
-            </SECTION>
+            <section class="admin-panel" id="panel-produtos" aria-label="Produtos">
+                <div class="admin-panel-header">
+                    <h1>Produtos</h1>
+                    <a href="#" class="btn btn-primary">Novo produto</a>
+                </div>
 
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Descrição</th>
+                            <th>Preço</th>
+                            <th>Disponibilidade</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <%
+                            achou = false;
+                            if (produtos != null) {
+                                while (produtos.next()) {
+                                    achou = true;
+                                    String dispProduto = produtos.getString("disponibilidade");
+                        %>
+                        <tr>
 
+                            <td><%= esc(produtos.getString("nome")) %></td>
+                            <td><%= esc(produtos.getString("categoria")) %></td>
+                            <td><%= esc(produtos.getString("descricao")) %></td>
+                            <td><%= fmtPreco(produtos.getBigDecimal("preco")) %></td>
+                            <td><span class="status-pill <%= statusClass(dispProduto) %>"><%= rotuloDisponibilidade(dispProduto) %></span></td>
+                            <td>
+                                <div class="admin-row-actions">
+                                    <a href="#">Ver</a>
+                                    <a href="#">Editar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <%
+                                }
+                            }
+                            if (!achou) {
+                        %>
+                        <tr>
+                            <td colspan="6">Nenhum produto cadastrado.</td>
+                        </tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- ============ PAINEL: FUNCIONÁRIOS ============ -->
             <section class="admin-panel" id="panel-funcionarios" aria-label="Funcionários">
                 <div class="admin-panel-header">
                     <h1>Funcionários</h1>
-                    <a href="#" class="btn btn-primary">Novo funcionário</a>
+                    <a href="cadastroFuncionario.jsp" class="btn btn-primary">Novo funcionário</a>
                 </div>
 
                 <div class="admin-table-wrap">
-
                     <table class="admin-table">
                         <thead>
                         <tr>
@@ -307,42 +456,37 @@
                             <th>Nome</th>
                             <th>Cargo</th>
                             <th>E-mail</th>
-                            <th>Senha</th>
                             <th>Admissão</th>
                             <th></th>
                         </tr>
                         </thead>
                         <tbody>
-
-                            <%
-                                java.sql.ResultSet funcionarios =
-                                        (java.sql.ResultSet) request.getAttribute("funcionarios");
-
-                                if (funcionarios != null) {
-
-                                    while (funcionarios.next()) {
-                            %>
-
-                            <tr>
-                                <td><%= esc(funcionarios.getString("nome")) %></td>
-                                <td><%= esc(funcionarios.getString("nome")) %></td>
-                                <td><%= esc(funcionarios.getString("cargo")) %></td>
-                                <td><%= esc(funcionarios.getString("email")) %></td>
-                                <td>Não disponível</td>
-                                <td><%= esc(funcionarios.getString("admissao")) %></td>
-
-                                <td>
-                                    <div class="admin-row-actions">
-                                        <a href="#">Ver</a>
-                                        <a href="#">Editar</a>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <%
-                                    }
+                        <%
+                            achou = false;
+                            if (funcionarios != null) {
+                                while (funcionarios.next()) {
+                                    achou = true;
+                        %>
+                        <tr>
+                            <td><%= esc(funcionarios.getString("nome")) %></td>
+                            <td><%= esc(funcionarios.getString("nome")) %></td>
+                            <td><%= esc(funcionarios.getString("cargo")) %></td>
+                            <td><%= esc(funcionarios.getString("email")) %></td>
+                            <td><%= esc(funcionarios.getString("admissao")) %></td>
+                            <td>
+                                <div class="admin-row-actions">
+                                    <a href="#">Ver</a>
+                                    <a href="#">Editar</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <%
                                 }
-                            %>
+                            }
+                            if (!achou) {
+                        %>
+                        <tr><td colspan="7">Nenhum funcionário cadastrado.</td></tr>
+                        <% } %>
                         </tbody>
                     </table>
                 </div>
