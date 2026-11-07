@@ -1,6 +1,6 @@
 package controle;
 
-import dao.UsuariosDao;
+import dao.FuncionariosDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @WebServlet(name = "ControleUsuario", urlPatterns = {"/ControleUsuario"})
-public class ControleUsuario extends HttpServlet {
+public class ControleFuncionario extends HttpServlet {
 
     //LISTAR FUNCIONARIOS
 
@@ -40,9 +40,9 @@ public class ControleUsuario extends HttpServlet {
 
         try {
 
-            UsuariosDao dao = new UsuariosDao();
+            FuncionariosDao dao = new FuncionariosDao();
 
-            ResultSet rs = dao.listarUsuarios();
+            ResultSet rs = dao.listarFuncionarios();
 
             request.setAttribute("funcionarios", rs);
 
@@ -77,7 +77,7 @@ public class ControleUsuario extends HttpServlet {
             String admissao = request.getParameter("admissao");
 
             try {
-                int resultado = new UsuariosDao().cadastrarUsuario(id_usuario, email, nome, senha, cargo, admissao);
+                int resultado = new FuncionariosDao().cadastrarFuncionarios(id_usuario, email, nome, senha, cargo, admissao);
                 if (resultado == 1) {
                     mensagem = "Funcionário cadastrado com sucesso!";
                 } else {
@@ -99,9 +99,7 @@ public class ControleUsuario extends HttpServlet {
                             + erro.getMessage();
                 }
             }
-
-
-
+            
 
             request.setAttribute("mens", mensagem);
 
