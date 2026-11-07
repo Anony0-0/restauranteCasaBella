@@ -14,6 +14,18 @@ import java.sql.SQLException;
 @WebServlet(name = "ControleCliente", urlPatterns = {"/ControleCliente"})
 public class ControleCliente extends HttpServlet {
 
+    // Abre o formulário de edição (painel) com os dados do cliente
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        if ("editar".equalsIgnoreCase(request.getParameter("origem"))) {
+            abrirEdicao(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Origem inválida.");
+        }
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -21,6 +33,13 @@ public class ControleCliente extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
 
         String origem = request.getParameter("origem");
+
+        // A edição pelo painel tem o próprio fluxo e não passa pelo mensagens.jsp
+        if ("atualizar".equalsIgnoreCase(origem)) {
+            atualizar(request, response);
+            return;
+        }
+
         String mensagem;
 
         if ("cadastrar".equalsIgnoreCase(origem)) {
@@ -39,7 +58,7 @@ public class ControleCliente extends HttpServlet {
                     mensagem = erro.getMessage();
                 }
             }
-        }else if ("excluir".equalsIgnoreCase(origem)) {
+        } else if ("excluir".equalsIgnoreCase(origem)) {
             // Só cliente logado pode excluir. getSession(false) não cria sessão nova.
             HttpSession sessao = request.getSession(false);
             if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
@@ -75,7 +94,92 @@ public class ControleCliente extends HttpServlet {
 
         request.setAttribute("mens", mensagem);
         request.getRequestDispatcher("mensagens.jsp").forward(request, response);
+    }
 
+    // ===================== EDIÇÃO PELO PAINEL =====================
 
+    private void abrirEdicao(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ehFuncionario(request)) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id").trim());
+            String[] cliente = new ClientesDao().buscarPorId(id);
+
+            if (cliente == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cliente não encontrado.");
+                return;
+            }
+            request.setAttribute("cliente", cliente);
+            request.getRequestDispatcher("/alterarClientePainel.jsp").forward(request, response);
+
+        } catch (NumberFormatException | NullPointerException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Cliente inválido.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
+    }
+
+    private void atualizar(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ehFuncionario(request)) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id_cliente").trim());
+            String nome = valor(request.getParameter("nome"));
+            String email = valor(request.getParameter("email"));
+            String telefone = valor(request.getParameter("telefone"));
+            String senha = request.getParameter("senha");
+
+            if (nome.isEmpty() || email.isEmpty() || telefone.isEmpty()) {
+                devolverForm(request, response, id, nome, email, telefone, "Preencha todos os campos.");
+                return;
+            }
+            if (senha != null && !senha.trim().isEmpty() && senha.length() < 6) {
+                devolverForm(request, response, id, nome, email, telefone, "A senha precisa ter ao menos 6 caracteres.");
+                return;
+            }
+
+            int resultado = new ClientesDao().atualizar(id, nome, email, telefone, senha);
+
+            if (resultado == 1) {
+                response.sendRedirect("PainelGerenciamento");
+            } else if (resultado == -1) {
+                devolverForm(request, response, id, nome, email, telefone, "Esse e-mail já está em uso por outro cliente.");
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cliente não encontrado.");
+            }
+
+        } catch (NumberFormatException | NullPointerException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Dados inválidos.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
+    }
+
+    // Reabre o formulário com o que a pessoa digitou e a mensagem de erro
+    private void devolverForm(HttpServletRequest request, HttpServletResponse response,
+                              int id, String nome, String email, String telefone, String erro)
+            throws ServletException, IOException {
+        request.setAttribute("cliente", new String[]{String.valueOf(id), nome, email, telefone});
+        request.setAttribute("erro", erro);
+        request.getRequestDispatcher("/alterarClientePainel.jsp").forward(request, response);
+    }
+
+    private String valor(String s) {
+        return s == null ? "" : s.trim();
+    }
+
+    // Só a equipe edita clientes
+    private boolean ehFuncionario(HttpServletRequest request) {
+        HttpSession sessao = request.getSession(false);
+        // return sessao != null && "funcionario".equals(sessao.getAttribute("perfil"));
+        return true; // TEMPORÁRIO: troque pela linha de cima quando o login da equipe gravar o perfil
     }
 }
