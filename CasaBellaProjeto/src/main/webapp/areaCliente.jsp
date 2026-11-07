@@ -259,10 +259,6 @@
                             <dt>Telefone</dt>
                             <dd><%= esc(telefone) %></dd>
                         </div>
-                        <div>
-                            <dt>Cliente desde</dt>
-                            <dd>12/03/2024</dd>
-                        </div>
                     </dl>
 
                     </dl>
