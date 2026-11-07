@@ -29,17 +29,8 @@ public class ControleLogin extends HttpServlet {
             String nome = new UsuariosDao().logar(email, senha);
 
             if (nome != null) {
-
                 guardarLogin(request, "funcionario", nome, email);
-
-                response.sendRedirect(
-                        request.getContextPath() + "/PainelGerenciamento"
-                );
-
-                return;
-            }  if (nome != null) {
-                guardarLogin(request, "funcionario", nome, email);
-                request.getRequestDispatcher("gerenciamento.jsp").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/PainelGerenciamento");
                 return;
             }
 
@@ -61,11 +52,32 @@ public class ControleLogin extends HttpServlet {
         request.getRequestDispatcher("mensagens.jsp").forward(request, response);
     }
 
-    // Quem tenta entrar por link (GET) volta para o login
+    // GET: logout, ou decide para onde mandar quem clicou no avatar
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect("login.html");
+
+        // Logout: ControleLogin?acao=sair
+        if ("sair".equals(request.getParameter("acao"))) {
+            HttpSession s = request.getSession(false);
+            if (s != null) s.invalidate();
+            response.sendRedirect("login.html");
+            return;
+        }
+
+        HttpSession sessao = request.getSession(false); // false = não cria sessão nova
+
+        if (sessao != null && sessao.getAttribute("perfil") != null) {
+            String perfil = (String) sessao.getAttribute("perfil");
+
+            if ("funcionario".equals(perfil)) {
+                response.sendRedirect(request.getContextPath() + "/PainelGerenciamento");
+            } else {
+                response.sendRedirect("areaCliente.jsp");
+            }
+        } else {
+            response.sendRedirect("login.html");
+        }
     }
 
     // request: usado pela tela que aparece agora. sessão: usada pelas próximas.
