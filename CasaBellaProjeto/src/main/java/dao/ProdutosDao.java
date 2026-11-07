@@ -1,5 +1,8 @@
 package dao;
 
+import org.w3c.dom.Text;
+
+import javax.swing.*;
 import java.sql.*;
 
 public class ProdutosDao {
@@ -23,6 +26,22 @@ public class ProdutosDao {
         rs = st.executeQuery();
 
         return rs;
+
+    }
+
+    public int cadastrarProduto(Integer id_produto, String categoria, String nome, String descricao, Double preco, Boolean disponibilidade)
+            throws SQLException, ClassNotFoundException {
+        conectar();
+
+        st = conectado.prepareStatement("insert into produtos values(?,?,?,?,?,?)");
+        st.setInt(1,id_produto);
+        st.setString(2, categoria);
+        st.setString(3, nome);
+        st.setString(5, descricao);
+        st.setDouble(4, preco);
+        st.setBoolean(6, disponibilidade);
+        resultado = st.executeUpdate(); //Executa o insert acima
+        return resultado;
 
     }
 
