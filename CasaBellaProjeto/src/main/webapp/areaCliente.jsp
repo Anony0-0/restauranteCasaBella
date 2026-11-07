@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.*, java.text.SimpleDateFormat, dao.ReservasDao"%>
 <%!
     // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
     private String esc(String s) {
@@ -106,8 +107,8 @@
                     <p class="account-sub">Aqui você acompanha suas reservas e os pedidos feitos no seu nome.</p>
                 </div>
                 <div class="account-head-actions">
-                    <a href="reservas.html" class="btn btn-primary">Nova reserva</a>
-                    <a href="login.html" class="link-gold">Sair</a>
+                    <a href="reservas.jsp" class="btn btn-primary">Nova reserva</a>
+                    <a href="ControleLogin?acao=sair" class="link-gold">Sair</a>
                 </div>
             </div>
 
