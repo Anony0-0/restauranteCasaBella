@@ -17,7 +17,7 @@
     //     return;
     // }
 
-    String id_usuario = request.getParameter("usuario");
+    String id_func = request.getParameter("usuario");
     String nome = (String) session.getAttribute("nome");
     if (nome == null) nome = "Funcionário(a)";
     String cargo = (String) session.getAttribute("cargo");
@@ -84,12 +84,12 @@
                     <p role="alert"><%= esc(erro) %></p>
                     <% } %>
 
-                    <form class="auth-form" action="ControleUsuario" method="post">
+                    <form class="auth-form" action="ControleFuncionario" method="post">
                         <input type="hidden" name="origem" value="cadastrar" />
 
                         <div class="field">
-                            <label for="id_usuario">Usuário</label>
-                            <input type="text" id="id_usuario" name="id_usuario" placeholder="Usuário para login" autocomplete="off" required />
+                            <label for="id_func">Usuário</label>
+                            <input type="text" id="id_func" name="id_func" placeholder="Usuário para login" autocomplete="off" required />
                         </div>
 
                         <div class="field">
