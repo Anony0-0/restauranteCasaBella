@@ -28,8 +28,8 @@ public class PainelGerenciamento extends HttpServlet {
 
 
             // FUNCIONÁRIOS
-            UsuariosDao usuariosDao = new UsuariosDao();
-            ResultSet funcionarios = usuariosDao.listarUsuarios();
+            FuncionariosDao funcionariosDao = new FuncionariosDao();
+            ResultSet funcionarios = funcionariosDao.listarFuncionarios();
 
             request.setAttribute("funcionarios", funcionarios);
 
