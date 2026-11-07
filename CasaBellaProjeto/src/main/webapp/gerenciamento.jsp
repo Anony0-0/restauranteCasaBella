@@ -110,7 +110,7 @@
         </nav>
 
         <div class="admin-logout">
-           <a href="ControleLogin?acao=sair">
+            <a href="ControleLogin?acao=sair">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M15 3H6a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 6 21h9"></path>
                     <path d="M10 12h11m0 0-3.5-3.5M21 12l-3.5 3.5"></path>
@@ -272,7 +272,7 @@
                     <table class="admin-table">
                         <thead>
                         <tr>
-                            <th>Nº</th>
+                            <th>Nº ID</th>
                             <th>Nome</th>
                             <th>E-mail</th>
                             <th>Telefone</th>
@@ -293,8 +293,7 @@
                             <td><%= esc(clientes.getString("telefone")) %></td>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
+                                    <a href="ControleCliente?origem=editar&id=<%= clientes.getInt("id_cliente") %>">Editar</a>
                                 </div>
                             </td>
                         </tr>
