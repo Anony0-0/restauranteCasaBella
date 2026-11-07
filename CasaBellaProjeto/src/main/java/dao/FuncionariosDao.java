@@ -21,7 +21,7 @@ public class FuncionariosDao {
         conectado = ConexaoBD.conectar();
     }
 
-    public int cadastrarUsuario(String id_func, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarFuncionario(String id_func, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
         st = conectado.prepareStatement("insert into funcionario values(?,?,?,?,?,?)");
         st.setString(1,id_func);
@@ -51,7 +51,7 @@ public class FuncionariosDao {
         }
     }
 
-    public ResultSet listarUsuarios() throws ClassNotFoundException, SQLException {
+    public ResultSet listarFuncionarios() throws ClassNotFoundException, SQLException {
         conectar();
 
         st = conectado.prepareStatement("SELECT * FROM funcionarios");
