@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS clientes (
     UNIQUE KEY uq_clientes_email (email)
 ) ENGINE=InnoDB;
 
-CREATE TABLE IF NOT EXISTS usuarios (
-	id_usuario VARCHAR(30) NOT NULL,
-    email VARCHAR(150) NOT NULL,
+CREATE TABLE IF NOT EXISTS funcionarios (
+	id_func VARCHAR(30) NOT NULL,
+    email VARCHAR(80) NOT NULL,
     nome VARCHAR(120) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     cargo VARCHAR(50) NOT NULL,
@@ -154,13 +154,17 @@ INSERT INTO clientes (nome, email, senha, telefone)
 SELECT 'Lucas Pereira', 'lucas@exemplo.com', 'DEMO_SEM_LOGIN', '(11) 91234-5678'
 WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE email = 'lucas@exemplo.com');
 
-INSERT INTO usuarios (id_usuario, email, nome, senha, cargo, admissao)
+INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'alana10','alana@casabella.com', 'Alana Rafaela', 'cbalana5', 'Gerente de TI', '2025-01-15'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'alana@casabella.com');
 
-INSERT INTO usuarios (id_usuario, email, nome, senha, cargo, admissao)
+INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'elenice10','elenice@casabella.com', 'Elenice Alexandre', 'elenicecb10', 'Gerente de TI', '2025-01-13'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'elenice@casabella.com');
+
+INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
+SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Gerente de TI', '2025-04-07'
+WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'juan@casabella.com');
 
 INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
 SELECT 'Massas', 'Spaghetti alla Carbonara', 'Massa com queijo, ovos e guanciale', 56.00, NULL, 'disponivel'
