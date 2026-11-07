@@ -1,13 +1,12 @@
 package dao;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 
-public class UsuariosDao {
+public class FuncionariosDao {
 
     //rs é para guardar o que retorna do SELECT na tabela
     private ResultSet rs;
@@ -22,10 +21,10 @@ public class UsuariosDao {
         conectado = ConexaoBD.conectar();
     }
 
-    public int cadastrarUsuario(String id_usuario, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarUsuario(String id_func, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
-        st = conectado.prepareStatement("insert into usuarios values(?,?,?,?,?,?)");
-        st.setString(1,id_usuario);
+        st = conectado.prepareStatement("insert into funcionario values(?,?,?,?,?,?)");
+        st.setString(1,id_func);
         st.setString(2, email);
         st.setString(3, nome);
         st.setString(5, senha);
@@ -39,7 +38,7 @@ public class UsuariosDao {
         //Conecta com o BD
         conectar();
         //Monta o comando Select a ser executado
-        st = conectado.prepareStatement("select * from usuarios where email=? and senha=?");
+        st = conectado.prepareStatement("select * from funcionarios where email=? and senha=?");
         st.setString(1, email);
         st.setString(2, senha);
         //Executa o select na tabela do bd
@@ -55,11 +54,12 @@ public class UsuariosDao {
     public ResultSet listarUsuarios() throws ClassNotFoundException, SQLException {
         conectar();
 
-        st = conectado.prepareStatement("SELECT * FROM usuarios");
+        st = conectado.prepareStatement("SELECT * FROM funcionarios");
 
         rs = st.executeQuery();
 
         return rs;
+
 
     }
 
