@@ -265,7 +265,7 @@
             <section class="admin-panel" id="panel-clientes" aria-label="Clientes">
                 <div class="admin-panel-header">
                     <h1>Clientes</h1>
-                    <a href="#" class="btn btn-primary">Novo cliente</a>
+                    <a href="cadastroCliente.jsp" class="btn btn-primary">Novo cliente</a>
                 </div>
 
                 <div class="admin-table-wrap">
