@@ -163,6 +163,10 @@ SELECT 'elenice10','elenice@casabella.com', 'Elenice Alexandre', 'elenicecb10', 
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'elenice@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
+SELECT 'gustavocb','gustavo@casabella.com', 'Gustavo Hitzschky', '1234567', 'Gerente de Administração', '2025-01-15'
+WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'alana@casabella.com');
+
+INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Gerente de TI', '2025-04-07'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'juan@casabella.com');
 
