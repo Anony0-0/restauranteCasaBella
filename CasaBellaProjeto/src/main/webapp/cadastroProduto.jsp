@@ -84,40 +84,46 @@
                     <p role="alert"><%= esc(erro) %></p>
                     <% } %>
 
-                    <form class="auth-form" action="ControleFuncionario" method="post">
+                    <form class="auth-form" action="ControleProduto" method="post">
                         <input type="hidden" name="origem" value="cadastrar" />
 
                         <div class="field">
-                            <label for="id_func">Usuário</label>
-                            <input type="text" id="id_func" name="id_func" placeholder="Usuário para login" autocomplete="off" required />
+                            <label for="id_produto">Nª ID do Produto </label>
+                            <input type="number" id="id_produto" name="id_produto" min="2" placeholder="Número de Identificação do Produto" autocomplete="off" required />
                         </div>
 
                         <div class="field">
-                            <label for="nome">Nome completo</label>
-                            <input type="text" id="nome" name="nome" placeholder="Digite o nome completo" autocomplete="off" required />
+                            <label for="categoria">Categoria</label>
+                            <select id="categoria" name="categoria" required>
+                                <option>Massa</option>
+                                <option>Vinhos</option>
+                            </select>
                         </div>
 
                         <div class="field">
-                            <label for="email">E-mail corporativo</label>
-                            <input type="email" id="email" name="email" placeholder="nome@casabella.com.br" autocomplete="off" required />
+                            <label for="nome">Nome do Produto</label>
+                            <input type="text" id="nome" name="nome" placeholder="Massa com molho branco" autocomplete="off" required />
                         </div>
 
                         <div class="field">
-                            <label for="senha">Senha</label>
-                            <input type="password" id="senha" name="senha" placeholder="••••••••" autocomplete="new-password" minlength="6" required />
+                            <label for="descricao">Descrição</label>
+                            <input type="text" id="descricao" name="descricao" placeholder="Massa cremosa com molho branco" autocomplete="off" required />
                         </div>
 
                         <div class="field">
-                            <label for="cargo">Cargo</label>
-                            <input type="text" id="cargo" name="cargo" placeholder="Atendente" autocomplete="off" required />
+                            <label for="preco">Preço</label>
+                            <input type="text" id="preco" name="preco" placeholder="R$ xxx,xx" autocomplete="off" required />
                         </div>
 
                         <div class="field">
-                            <label for="admissao">Data de admissão</label>
-                            <input type="date" id="admissao" name="admissao" required />
+                            <label for="disponibilidade">Disponibilidade</label>
+                            <select id="disponibilidade" name="disponibilidade" required>
+                                <option value="disponivel">Disponível</option>
+                                <option value="indisponivel">Indisponível</option>
+                            </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block">Cadastrar funcionário</button>
+                        <button type="submit" class="btn btn-primary btn-block">Cadastrar novo produto</button>
                     </form>
                 </div>
             </section>
