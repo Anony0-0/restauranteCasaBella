@@ -96,7 +96,12 @@
                             <label for="categoria">Categoria</label>
                             <select id="categoria" name="categoria" required>
                                 <option>Massa</option>
+                                <option>Pizzas</option>
+                                <option>Saladas</option>
+                                <option>Sobremesas</option>
+                                <option>Bebidas Diversas</option>
                                 <option>Vinhos</option>
+
                             </select>
                         </div>
 
