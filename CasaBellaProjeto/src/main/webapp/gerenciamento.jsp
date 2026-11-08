@@ -51,6 +51,16 @@
     String cargo = (String) request.getAttribute("cargo");
     if (cargo == null) cargo = (String) session.getAttribute("cargo");
 
+    String aviso = (String) session.getAttribute("aviso");
+    session.removeAttribute("aviso"); // mostra só uma vez
+
+    // Aba que deve abrir marcada (vem da URL: PainelGerenciamento?aba=produtos)
+    String aba = request.getParameter("aba");
+    if (!"clientes".equals(aba) && !"reservas".equals(aba)
+            && !"produtos".equals(aba) && !"funcionarios".equals(aba)) {
+        aba = "pedidos"; // padrão, e também para qualquer valor estranho
+    }
+
     // ResultSets enviados pelo servlet (request.setAttribute). Se algum vier
     // null, o painel correspondente mostra "Nenhum registro".
     ResultSet pedidos      = (ResultSet) request.getAttribute("pedidos");
@@ -86,12 +96,11 @@
   Os dados de todas as tabelas vêm do servlet via request.setAttribute:
   "pedidos", "clientes", "reservas", "produtos" e "funcionarios".
 -->
-
-<input type="radio" name="admin-tab" id="tab-pedidos" class="admin-tab-radio" checked />
-<input type="radio" name="admin-tab" id="tab-clientes" class="admin-tab-radio" />
-<input type="radio" name="admin-tab" id="tab-reservas" class="admin-tab-radio" />
-<input type="radio" name="admin-tab" id="tab-produtos" class="admin-tab-radio" />
-<input type="radio" name="admin-tab" id="tab-funcionarios" class="admin-tab-radio" />
+<input type="radio" name="admin-tab" id="tab-pedidos" class="admin-tab-radio" <%= "pedidos".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-clientes" class="admin-tab-radio" <%= "clientes".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-reservas" class="admin-tab-radio" <%= "reservas".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-produtos" class="admin-tab-radio" <%= "produtos".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-funcionarios" class="admin-tab-radio" <%= "funcionarios".equals(aba) ? "checked" : "" %> />
 
 <div class="admin-shell">
 
@@ -389,13 +398,18 @@
             <section class="admin-panel" id="panel-produtos" aria-label="Produtos">
                 <div class="admin-panel-header">
                     <h1>Produtos</h1>
-                    <a href="#" class="btn btn-primary">Novo produto</a>
+                    <a href="cadastroProduto.jsp" class="btn btn-primary">Novo produto</a>
                 </div>
+
+                <% if (aviso != null && "produtos".equals(aba)) { %>
+                <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
+                <% } %>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <thead>
                         <tr>
+                            <th>Nª ID</th>
                             <th>Nome</th>
                             <th>Categoria</th>
                             <th>Descrição</th>
@@ -414,6 +428,7 @@
                         %>
                         <tr>
 
+                            <td><%= esc(produtos.getString("id_produto")) %></td>
                             <td><%= esc(produtos.getString("nome")) %></td>
                             <td><%= esc(produtos.getString("categoria")) %></td>
                             <td><%= esc(produtos.getString("descricao")) %></td>
@@ -467,14 +482,13 @@
                                     achou = true;
                         %>
                         <tr>
-                            <td><%= esc(funcionarios.getString("nome")) %></td>
+                            <td><%= esc(funcionarios.getString("id_func")) %></td>
                             <td><%= esc(funcionarios.getString("nome")) %></td>
                             <td><%= esc(funcionarios.getString("cargo")) %></td>
                             <td><%= esc(funcionarios.getString("email")) %></td>
                             <td><%= esc(funcionarios.getString("admissao")) %></td>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
                                     <a href="#">Editar</a>
                                 </div>
                             </td>
