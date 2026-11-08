@@ -1,11 +1,12 @@
-# restauranteCasaBella
+# Restaurante CasaBella
 
 Projeto extensivo acadêmico
 
 #Imagens do Projeto
 
 Tela Introdução 
-<img width="1868" height="929" alt="image" src="https://github.com/user-attachments/assets/46fff733-e1cc-404a-9b3c-89171aac24a5" />
+<img width="1877" height="924" alt="image" src="https://github.com/user-attachments/assets/728de5bf-5ba3-4fd9-9f29-50210c47074a" />
+
 
 Telas principais de genrenciamento
 
