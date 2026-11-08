@@ -10,12 +10,12 @@ Tela Introdução
 Telas principais de genrenciamento
 
 Tabela pedidos
-<img width="1867" height="931" alt="image" src="https://github.com/user-attachments/assets/3564e452-d2e4-49b1-a63d-edc4a0da82cf" />
+<img width="1863" height="928" alt="image" src="https://github.com/user-attachments/assets/76f477cc-de9f-47f3-ba6f-2035ab9ab030" />
 
+#Tabela Clientes
+<img width="1863" height="929" alt="image" src="https://github.com/user-attachments/assets/9c0a68a1-99e6-48b2-98f6-8b1d976a3ab1" />
 
-#Tabela CLientes
-<img width="1874" height="925" alt="image" src="https://github.com/user-attachments/assets/7ff393bc-ce29-4860-aefe-c58d3dfb0f37" />
-
+# Tabela Reservas
 Tabela Funcionários (listagem funcionando)
 <img width="1879" height="927" alt="image" src="https://github.com/user-attachments/assets/b281c67d-0773-4842-90e9-4003d58e4541" />
 
