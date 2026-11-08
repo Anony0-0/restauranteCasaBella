@@ -89,7 +89,7 @@
 
                         <div class="field">
                             <label for="id_func">Usuário</label>
-                            <input type="text" id="id_func" name="id_func" placeholder="Usuário para login" autocomplete="off" required />
+                            <input type="text" id="id_func" name="id_func" placeholder="Usuário para login" autocomplete="off" minlength="6" required />
                         </div>
 
                         <div class="field">
