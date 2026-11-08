@@ -21,14 +21,14 @@ public class FuncionariosDao {
         conectado = ConexaoBD.conectar();
     }
 
-    public int cadastrarFuncionario(String id_func, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarFuncionarios(String id_func, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
-        st = conectado.prepareStatement("insert into funcionario values(?,?,?,?,?,?)");
+        st = conectado.prepareStatement("insert into funcionarios values(?,?,?,?,?,?)");
         st.setString(1,id_func);
         st.setString(2, email);
         st.setString(3, nome);
-        st.setString(5, senha);
-        st.setString(4, cargo);
+        st.setString(4, senha);
+        st.setString(5, cargo);
         st.setString(6, admissao);
         resultado = st.executeUpdate(); //Executa o insert acima
         return resultado;
