@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@WebServlet(name = "ControleUsuario", urlPatterns = {"/ControleUsuario"})
+@WebServlet(name = "ControleFuncionario", urlPatterns = {"/ControleFuncionario"})
 public class ControleFuncionario extends HttpServlet {
 
     //LISTAR FUNCIONARIOS
@@ -69,7 +69,7 @@ public class ControleFuncionario extends HttpServlet {
         String mensagem;
 
         if ("cadastrar".equalsIgnoreCase(origem)) {
-            String id_usuario = request.getParameter("id_usuario");
+            String id_func= request.getParameter("id_func");
             String email = request.getParameter("email");
             String nome = request.getParameter("nome");
             String senha = request.getParameter("senha");
@@ -77,7 +77,7 @@ public class ControleFuncionario extends HttpServlet {
             String admissao = request.getParameter("admissao");
 
             try {
-                int resultado = new FuncionariosDao().cadastrarFuncionarios(id_usuario, email, nome, senha, cargo, admissao);
+                int resultado = new FuncionariosDao().cadastrarFuncionarios(id_func, email, nome, senha, cargo, admissao);
                 if (resultado == 1) {
                     mensagem = "Funcionário cadastrado com sucesso!";
                 } else {
