@@ -12,23 +12,24 @@ CREATE TABLE IF NOT EXISTS clientes (
     UNIQUE KEY uq_clientes_email (email)
 ) ENGINE=InnoDB;
 
+--PRECISA MUDAR
 CREATE TABLE IF NOT EXISTS funcionarios (
 	id_func VARCHAR(30) NOT NULL,
+	nome VARCHAR(120) NOT NULL,
+	usermobi VARCHAR (120) NOT NULL
     email VARCHAR(80) NOT NULL,
-    nome VARCHAR(120) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     cargo VARCHAR(50) NOT NULL,
     admissao DATE,
-    PRIMARY KEY (id_usuario)
+    PRIMARY KEY (id_func)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS produtos (
-    id_produto INT NOT NULL AUTO_INCREMENT,
+    id_produto INT NOT NULL,
     categoria VARCHAR(80) NOT NULL,
     nome VARCHAR(150) NOT NULL,
     descricao TEXT,
     preco DECIMAL(10,2) NOT NULL,
-    imagem VARCHAR(500),
     disponibilidade ENUM('disponivel', 'indisponivel') NOT NULL DEFAULT 'disponivel',
     PRIMARY KEY (id_produto),
     CONSTRAINT chk_produto_preco CHECK (preco >= 0)
@@ -63,6 +64,7 @@ CREATE TABLE IF NOT EXISTS pedidos (
     id_pedido INT NOT NULL AUTO_INCREMENT,
     id_cliente INT,
     id_mesa INT,
+    id_reserva INT NOT NULL,
     data_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(30) NOT NULL DEFAULT 'Pendente',
     valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -71,6 +73,8 @@ CREATE TABLE IF NOT EXISTS pedidos (
         REFERENCES clientes(id_cliente),
     CONSTRAINT fk_pedidos_mesa FOREIGN KEY (id_mesa)
         REFERENCES mesas(id_mesa),
+    CONSTRAINT fk_pedidos_reserva FOREIGN KEY (id_reserva)
+        REFERENCES reservas(id_reserva),
     CONSTRAINT chk_total_nao_negativo CHECK (valor_total >= 0)
 ) ENGINE=InnoDB;
 
@@ -155,6 +159,10 @@ SELECT 'Lucas Pereira', 'lucas@exemplo.com', 'DEMO_SEM_LOGIN', '(11) 91234-5678'
 WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE email = 'lucas@exemplo.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
+SELECT 'patricia10','patricia@casabella.com', 'Patricia Kaiane', 'cbpatricia12', 'DBA', '2025-01-15'
+WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'alana@casabella.com');
+
+INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'alana10','alana@casabella.com', 'Alana Rafaela', 'cbalana5', 'Gerente de TI', '2025-01-15'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'alana@casabella.com');
 
@@ -163,11 +171,11 @@ SELECT 'elenice10','elenice@casabella.com', 'Elenice Alexandre', 'elenicecb10', 
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'elenice@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
-SELECT 'gustavocb','gustavo@casabella.com', 'Gustavo Hitzschky', '1234567', 'Gerente de Administração', '2025-01-15'
+SELECT 'gustavocb','gustavo@casabella.com', 'Gustavo Hitzschky', '12345678', 'Gerente de Administração', '2025-01-15'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'alana@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
-SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Gerente de TI', '2025-04-07'
+SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Suporte Técnico', '2025-04-07'
 WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'juan@casabella.com');
 
 INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
