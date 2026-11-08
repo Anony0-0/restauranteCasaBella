@@ -164,15 +164,15 @@ WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'geral@casabella.com'
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'patricia10','patricia@casabella.com', 'Patricia Kaiane', 'cbpatricia12', 'DBA', '2025-01-15'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'patricia@casabella.com');
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'patricia@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'alana10','alana@casabella.com', 'Alana Rafaela', 'cbalana5', 'Gerente de TI', '2025-01-15'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'alana@casabella.com');
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'alana@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'elenice10','elenice@casabella.com', 'Elenice Alexandre', 'elenicecb10', 'Gerente de TI', '2025-01-13'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'elenice@casabella.com');
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'elenice@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'gustavocb','gustavo@casabella.com', 'Gustavo Hitzschky', '12345678', 'Gerente de Administração', '2025-01-15'
@@ -180,7 +180,7 @@ WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'gustavo@casabella.co
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Suporte Técnico', '2025-04-07'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'juan@casabella.com');
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'juan@casabella.com');
 
 INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
 SELECT 'Massas', 'Spaghetti alla Carbonara', 'Massa com queijo, ovos e guanciale', 56.00, NULL, 'disponivel'
