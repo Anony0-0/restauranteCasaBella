@@ -1,7 +1,7 @@
 package controle;
 
 import dao.ClientesDao;
-import dao.UsuariosDao;
+import dao.FuncionariosDao;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,7 +26,7 @@ public class ControleLogin extends HttpServlet {
 
         try {
             // 1) Procura primeiro na tabela de funcionários
-            String nome = new UsuariosDao().logar(email, senha);
+            String nome = new FuncionariosDao().logar(email, senha);
 
             if (nome != null) {
                 guardarLogin(request, "funcionario", nome, email);
