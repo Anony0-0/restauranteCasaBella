@@ -160,7 +160,7 @@ WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE email = 'lucas@exemplo.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'geral500','geral@casabella.com', 'Conta Geral', '12345678', 'Conta Geral', '2000-01-01'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'geral@casabella.com');
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'geral@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'patricia10','patricia@casabella.com', 'Patricia Kaiane', 'cbpatricia12', 'DBA', '2025-01-15'
@@ -176,7 +176,7 @@ WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'elenice@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'gustavocb','gustavo@casabella.com', 'Gustavo Hitzschky', '12345678', 'Gerente de Administração', '2025-01-15'
-WHERE NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'gustavo@casabella.com');
+WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'gustavo@casabella.com');
 
 INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Suporte Técnico', '2025-04-07'
