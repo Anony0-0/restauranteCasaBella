@@ -1,8 +1,5 @@
 package dao;
-
-import org.w3c.dom.Text;
-
-import javax.swing.*;
+import java.math.BigDecimal;
 import java.sql.*;
 
 public class ProdutosDao {
@@ -29,20 +26,24 @@ public class ProdutosDao {
 
     }
 
-    public int cadastrarProduto(Integer id_produto, String categoria, String nome, String descricao, Double preco, Boolean disponibilidade)
+    public int cadastrarProduto(int idProduto, String categoria, String nome, String descricao,
+                                BigDecimal preco, boolean disponibilidade)
             throws SQLException, ClassNotFoundException {
-        conectar();
 
-        st = conectado.prepareStatement("insert into produtos values(?,?,?,?,?,?)");
-        st.setInt(1,id_produto);
-        st.setString(2, categoria);
-        st.setString(3, nome);
-        st.setString(5, descricao);
-        st.setDouble(4, preco);
-        st.setBoolean(6, disponibilidade);
-        resultado = st.executeUpdate(); //Executa o insert acima
-        return resultado;
-
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement(
+                "INSERT INTO produtos (id_produto, categoria, nome, descricao, preco, disponibilidade) VALUES (?, ?, ?, ?, ?, ?)")) {
+            ps.setInt(1, idProduto);
+            ps.setString(2, categoria);
+            ps.setString(3, nome);
+            ps.setString(4, descricao);
+            ps.setBigDecimal(5, preco);
+            ps.setString(6, disponibilidade ? "disponivel" : "indisponivel"); // boolean -> enum do banco
+            return ps.executeUpdate();
+        } finally {
+            con.close();
+        }
     }
 
 }
+
