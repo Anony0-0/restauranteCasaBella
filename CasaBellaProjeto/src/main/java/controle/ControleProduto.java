@@ -48,7 +48,8 @@ public class ControleProduto extends HttpServlet {
                             .cadastrarProduto(id_produto, categoria, nome, descricao, preco, disponivel);
 
                     if (resultado == 1) {
-                        response.sendRedirect("PainelGerenciamento");
+                        request.getSession().setAttribute("aviso", "Produto cadastrado com sucesso.");
+                        response.sendRedirect("PainelGerenciamento?aba=produtos");
                         return;
                     }
                     mensagem = "Produto não cadastrado.";
