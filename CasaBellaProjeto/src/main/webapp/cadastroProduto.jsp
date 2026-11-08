@@ -50,7 +50,7 @@
         </a>
 
         <nav class="admin-nav" aria-label="Navegação do painel">
-            <a href="gerenciamento.jsp">Voltar ao painel</a>
+            <a href="PainelGerenciamento?aba=produtos">Voltar ao painel</a>
         </nav>
 
         <div class="admin-logout">
@@ -97,10 +97,12 @@
                             <select id="categoria" name="categoria" required>
                                 <option>Massa</option>
                                 <option>Pizzas</option>
+                                <option>Risotos</option>
                                 <option>Saladas</option>
                                 <option>Sobremesas</option>
                                 <option>Bebidas Diversas</option>
                                 <option>Vinhos</option>
+                                <option>Infantil</option>
 
                             </select>
                         </div>
