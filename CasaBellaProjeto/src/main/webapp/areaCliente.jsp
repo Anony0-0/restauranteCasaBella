@@ -1,5 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="java.util.*, java.text.SimpleDateFormat, dao.ReservasDao"%>
+<%@page import="java.util.*, java.text.SimpleDateFormat, java.sql.ResultSet, java.sql.Timestamp, dao.ReservasDao"%>
 <%!
     // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
     private String esc(String s) {
@@ -8,27 +8,19 @@
     }
 %>
 <%
-    // PROTEÇÃO DA PÁGINA: ative (tirando os //) quando o ControleLogin passar
-    // a guardar o usuário na sessão. Quem não estiver logado volta para o login.
-    // if (session.getAttribute("nome") == null && request.getAttribute("nome") == null) {
-    //     response.sendRedirect("login.html");
-    //     return;
-    // }
-
-    // Dados de quem logou. O ControleLogin envia com request.setAttribute(...)
-    // ou guarda na sessão com session.setAttribute(...).
     String nome = (String) request.getAttribute("nome");
     if (nome == null) nome = (String) session.getAttribute("nome");
-    if (nome == null) nome = "Cliente"; // aparece só se a página for aberta direto
+    if (nome == null) nome = "Cliente";
 
     String email = (String) request.getAttribute("email");
     if (email == null) email = (String) session.getAttribute("email");
     if (email == null) email = "—";
 
     String telefone = (String) request.getAttribute("telefone");
+    if (telefone == null) telefone = (String) session.getAttribute("telefone");
+    if (telefone == null) telefone = "—";
 
-
-    // Só o primeiro nome para a saudação: "Renata Prado" -> "Renata"
+    Integer idClienteLogado = (Integer) session.getAttribute("id_cliente");
     String primeiroNome = nome.trim().split("\\s+")[0];
 %>
 <!DOCTYPE html>
@@ -83,15 +75,6 @@
 </header>
 
 <main id="conteudo-principal">
-
-    <!--
-      O nome na saudação e em "Meus dados" já vem de quem logou. Os demais
-      dados (próxima reserva e linhas das tabelas) ainda são exemplo fixos:
-      quando o DAO estiver pronto, serão preenchidos com os dados do cliente.
-
-      As abas funcionam só com CSS: os radios abaixo precisam ficar no mesmo
-      nível (irmãos) do div com a classe account-body.
-    -->
     <section class="account" aria-label="Área do cliente">
         <div class="container">
 
@@ -132,7 +115,6 @@
                 </div>
             </div>
 
-            <!-- Abas -->
             <div class="account-body">
                 <div class="account-tabs">
                     <label for="acc-reservas">Minhas reservas</label>
@@ -146,55 +128,61 @@
                         <table class="admin-table">
                             <thead>
                             <tr>
-                                <th>Data</th>
-                                <th>Horário</th>
+                                <th>Data / Horário</th>
                                 <th>Pessoas</th>
-                                <th>Ambiente</th>
+                                <th>Mesa</th>
                                 <th>Status</th>
                                 <th></th>
                             </tr>
                             </thead>
                             <tbody>
+                            <%
+                                try {
+                                    ReservasDao reservaDao = new ReservasDao();
+                                    if (idClienteLogado != null) {
+                                        ResultSet rsReservas = reservaDao.listarReservasPorCliente(idClienteLogado);
+                                        boolean temReservas = false;
+
+                                        while (rsReservas != null && rsReservas.next()) {
+                                            temReservas = true;
+                                            Timestamp horarioReserva = rsReservas.getTimestamp("horario");
+                                            int qtdPessoas = rsReservas.getInt("qtd_pessoas");
+                                            int idMesa = rsReservas.getInt("id_mesa");
+                                            String statusReserva = rsReservas.getString("status");
+
+                                            SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                                            String dataFormatada = formatoData.format(horarioReserva);
+
+                                            String classeStatus = "is-pendente";
+                                            if ("Confirmada".equalsIgnoreCase(statusReserva)) classeStatus = "is-confirmada";
+                                            else if ("Realizada".equalsIgnoreCase(statusReserva)) classeStatus = "is-realizada";
+                                            else if ("Cancelada".equalsIgnoreCase(statusReserva)) classeStatus = "is-cancelada";
+                            %>
                             <tr>
-                                <td>31/10/2026</td>
-                                <td>20h00</td>
-                                <td>4</td>
-                                <td>Salão principal</td>
-                                <td><span class="status-pill is-confirmada">Confirmada</span></td>
+                                <td><%= esc(dataFormatada) %></td>
+                                <td><%= qtdPessoas %></td>
+                                <td>Mesa <%= idMesa %></td>
+                                <td><span class="status-pill <%= classeStatus %>"><%= esc(statusReserva) %></span></td>
                                 <td><a href="#" class="chip-btn">Ver</a></td>
                             </tr>
+                            <%
+                                }
+                                if (!temReservas) {
+                            %>
                             <tr>
-                                <td>14/11/2026</td>
-                                <td>13h00</td>
-                                <td>2</td>
-                                <td>Varanda</td>
-                                <td><span class="status-pill is-pendente">Pendente</span></td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
+                                <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registadas.</td>
                             </tr>
+                            <%
+                                    }
+                                }
+                            } catch (Exception e) {
+                            %>
                             <tr>
-                                <td>12/09/2026</td>
-                                <td>20h30</td>
-                                <td>3</td>
-                                <td>Salão principal</td>
-                                <td><span class="status-pill is-realizada">Realizada</span></td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
+                                <td colspan="5" style="text-align: center; color: #ff6b6b;">Erro ao carregar reservas.</td>
                             </tr>
-                            <tr>
-                                <td>20/07/2026</td>
-                                <td>19h30</td>
-                                <td>2</td>
-                                <td>Salão principal</td>
-                                <td><span class="status-pill is-realizada">Realizada</span></td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
-                            </tr>
-                            <tr>
-                                <td>03/06/2026</td>
-                                <td>21h00</td>
-                                <td>6</td>
-                                <td>Sala reservada</td>
-                                <td><span class="status-pill is-cancelada">Cancelada</span></td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
-                            </tr>
+                            <%
+                                }
+                            %>
                             </tbody>
                         </table>
                     </div>
@@ -244,7 +232,7 @@
                     </div>
                 </div>
 
-                <!-- ========== MEUS DADOS (somente visualização) ========== -->
+                <!-- ========== MEUS DADOS========== -->
                 <div class="account-panel" id="acc-panel-dados">
                     <dl class="profile-list">
                         <div>
