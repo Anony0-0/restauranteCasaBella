@@ -87,18 +87,7 @@ public class ClientesDao {
         return st.executeUpdate();
 
     }
-
-
-    public int alterarCliente(String email, String nome, String telefone) throws SQLException, ClassNotFoundException {
-        conectar();
-        st = conectado.prepareStatement("update clientes set nome=?, telefone=? where email=?");
-        st.setString(1, nome);
-        st.setString(2, telefone);
-        st.setString(3, email);
-
-        return st.executeUpdate();
-    }
-
+    
 
     // Retorna 1 se atualizou, 0 se o cliente não existe, -1 se o e-mail já é de outro cliente.
     // novaSenha em branco = mantém a senha atual.
