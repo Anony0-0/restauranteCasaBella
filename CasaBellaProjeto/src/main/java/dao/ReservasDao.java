@@ -70,6 +70,28 @@ public class ReservasDao {
         }
     }
 
+    // Pendente/Confirmada -> Cancelada. Retorna 1 se cancelou, 0 se não pode cancelar,
+    // -1 se já existe pedido ligado à reserva.
+    public int cancelar(int idReserva) throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+        try {
+            try (PreparedStatement ps = con.prepareStatement(
+                    "SELECT 1 FROM pedidos WHERE id_reserva = ?")) {
+                ps.setInt(1, idReserva);
+                try (ResultSet r = ps.executeQuery()) {
+                    if (r.next()) return -1;
+                }
+            }
+            try (PreparedStatement ps = con.prepareStatement(
+                    "UPDATE reservas SET status = 'Cancelada' WHERE id_reserva = ? AND status IN ('Pendente','Confirmada')")) {
+                ps.setInt(1, idReserva);
+                return ps.executeUpdate();
+            }
+        } finally {
+            con.close();
+        }
+    }
+
 
     // LISTAR RESERVAS
     public ResultSet listarReservas() throws SQLException, ClassNotFoundException {
@@ -93,6 +115,16 @@ public class ReservasDao {
 
         rs = st.executeQuery();
 
+        return rs;
+    }
+
+
+    public ResultSet listarReservasPorCliente(int idCliente) throws SQLException, ClassNotFoundException {
+        conectar();
+        String sql = "SELECT * FROM reservas WHERE id_cliente = ? ORDER BY horario DESC";
+        st = conectado.prepareStatement(sql);
+        st.setInt(1, idCliente);
+        rs = st.executeQuery();
         return rs;
     }
 }
