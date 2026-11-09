@@ -1,21 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'pedido.dart';
 import '../controllers/catalogo_controller.dart';
 
 class CardapioPage extends StatefulWidget {
-  final String mesa;
-  final int? mesaId;
-  final String garcom;
-  final bool modoSelecao;
-
-  const CardapioPage({
-    super.key,
-    required this.mesa,
-    this.mesaId,
-    required this.garcom,
-    this.modoSelecao = false,
-  });
+  const CardapioPage({super.key});
 
   @override
   State<CardapioPage> createState() => _CardapioPageState();
@@ -763,23 +751,9 @@ class _CardapioPageState extends State<CardapioPage> {
       );
       return;
     }
-    if (widget.modoSelecao) {
-      Navigator.pop(
-        context,
-        itensPedido.map((item) => Map<String, dynamic>.from(item)).toList(),
-      );
-      return;
-    }
-    Navigator.push(
+    Navigator.pop(
       context,
-      MaterialPageRoute(
-        builder: (context) => PedidoPage(
-          mesa: widget.mesa,
-          mesaId: widget.mesaId,
-          garcom: widget.garcom,
-          itens: itensPedido,
-        ),
-      ),
+      itensPedido.map((item) => Map<String, dynamic>.from(item)).toList(),
     );
   }
 
@@ -852,7 +826,7 @@ class _CardapioPageState extends State<CardapioPage> {
                 const SizedBox(height: 5),
 
                 Text(
-                  'Pedido - ${widget.mesa}',
+                  'Adicionar produtos ao pedido',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1047,9 +1021,7 @@ class _CardapioPageState extends State<CardapioPage> {
                                   ),
 
                                   child: Text(
-                                    widget.modoSelecao
-                                        ? 'Adicionar nesta rodada'
-                                        : 'Adicionar ao pedido',
+                                    'Adicionar ao pedido',
                                   ),
                                 ),
                               ),
@@ -1065,22 +1037,20 @@ class _CardapioPageState extends State<CardapioPage> {
           ),
         ],
       ),
-      bottomNavigationBar: widget.modoSelecao
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: FilledButton.icon(
-                  onPressed: itensPedido.isEmpty ? null : _continuarComItens,
-                  icon: const Icon(Icons.playlist_add_check),
-                  label: const Text('Adicionar itens ao pedido'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
-                    backgroundColor: const Color(0xFF7B1E2B),
-                  ),
-                ),
-              ),
-            )
-          : null,
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: FilledButton.icon(
+            onPressed: itensPedido.isEmpty ? null : _continuarComItens,
+            icon: const Icon(Icons.playlist_add_check),
+            label: const Text('Adicionar itens ao pedido'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              backgroundColor: const Color(0xFF7B1E2B),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

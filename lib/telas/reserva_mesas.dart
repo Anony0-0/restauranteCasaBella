@@ -21,49 +21,66 @@ class ReservaMesasPage extends StatefulWidget {
 class _ReservaMesasPageState extends State<ReservaMesasPage> {
   final _controller = ReservaController();
   late final Future<List<Mesa>> _mesasFuture = _controller.listarMesas();
+
   int? _mesaSelecionada;
   bool _processando = false;
 
   int get _reservaId => (widget.reserva['id_reserva'] as num).toInt();
+
   int get _pessoas => (widget.reserva['qtd_pessoas'] as num?)?.toInt() ?? 0;
+
   String get _status =>
       widget.reserva['status']?.toString().toLowerCase() ?? '';
-  int? get _mesaAssociada => (widget.reserva['id_mesa'] as num?)?.toInt();
 
-  bool _podeUsar(Mesa mesa) {
-    if (_status == 'confirmada' && mesa.idMesa == _mesaAssociada) return true;
-    return !_estaConfirmada && !mesa.reservado && mesa.capacidade >= _pessoas;
-  }
+  int? get _mesaAssociada => (widget.reserva['id_mesa'] as num?)?.toInt();
 
   bool get _estaConfirmada => _status == 'confirmada';
 
+  bool _podeUsar(Mesa mesa) {
+    if (_estaConfirmada && mesa.idMesa == _mesaAssociada) {
+      return true;
+    }
+
+    return !_estaConfirmada && !mesa.reservado && mesa.capacidade >= _pessoas;
+  }
+
   Future<void> _abrirAtendimento(int mesaId) async {
     if (_processando) return;
+
     setState(() => _processando = true);
+
     try {
-      if (!_estaConfirmada) {
-        await _controller.confirmar(reservaId: _reservaId, mesaId: mesaId);
-      }
+      final reservaAtual = !_estaConfirmada
+          ? await _controller.confirmarComMesa(
+              reservaId: _reservaId,
+              mesaId: mesaId,
+            )
+          : widget.reserva;
+
       final pedido = await _controller.abrirPedido(
-        reservaId: _reservaId,
-        mesaId: mesaId,
+        reserva: reservaAtual,
         atendente: widget.atendente,
       );
+
       if (!mounted) return;
+
       await Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) =>
-              PedidoReservaPage(reserva: widget.reserva, pedido: pedido),
+              PedidoReservaPage(reserva: reservaAtual, pedido: pedido),
         ),
       );
     } catch (erro) {
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Não foi possível abrir o atendimento: $erro')),
       );
     } finally {
-      if (mounted) setState(() => _processando = false);
+      if (mounted) {
+        setState(() => _processando = false);
+      }
     }
   }
 
@@ -76,12 +93,15 @@ class _ReservaMesasPageState extends State<ReservaMesasPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
+
         if (snapshot.hasError || !snapshot.hasData) {
           return const Center(
             child: Text('Não foi possível carregar as mesas.'),
           );
         }
+
         final mesas = snapshot.data!;
+
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -100,7 +120,8 @@ class _ReservaMesasPageState extends State<ReservaMesasPage> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      'Reserva para $_pessoas ${_pessoas == 1 ? 'pessoa' : 'pessoas'}',
+                      'Reserva para $_pessoas '
+                      '${_pessoas == 1 ? 'pessoa' : 'pessoas'}',
                     ),
                     Text(
                       _estaConfirmada
@@ -115,8 +136,10 @@ class _ReservaMesasPageState extends State<ReservaMesasPage> {
             ...mesas.map((mesa) {
               final selecionavel = _podeUsar(mesa);
               final selecionada = _mesaSelecionada == mesa.idMesa;
+
               final atribuida =
                   _estaConfirmada && mesa.idMesa == _mesaAssociada;
+
               return Card(
                 color: selecionada ? const Color(0xFFFFF5F3) : null,
                 child: ListTile(
@@ -129,12 +152,14 @@ class _ReservaMesasPageState extends State<ReservaMesasPage> {
                   title: Text('Mesa ${mesa.idMesa}'),
                   subtitle: Text(
                     atribuida
-                        ? '${mesa.capacidade} lugares • vinculada a esta reserva'
-                        : '${mesa.capacidade} lugares${mesa.capacidade < _pessoas
-                              ? ' • capacidade insuficiente'
-                              : mesa.reservado
-                              ? ' • ocupada'
-                              : ' • disponível'}',
+                        ? '${mesa.capacidade} lugares • '
+                              'vinculada a esta reserva'
+                        : '${mesa.capacidade} lugares'
+                              '${mesa.capacidade < _pessoas
+                                  ? ' • capacidade insuficiente'
+                                  : mesa.reservado
+                                  ? ' • ocupada'
+                                  : ' • disponível'}',
                   ),
                   trailing: Icon(
                     selecionada
@@ -146,7 +171,11 @@ class _ReservaMesasPageState extends State<ReservaMesasPage> {
                   ),
                   enabled: selecionavel && !_processando,
                   onTap: selecionavel
-                      ? () => setState(() => _mesaSelecionada = mesa.idMesa)
+                      ? () {
+                          setState(() {
+                            _mesaSelecionada = mesa.idMesa;
+                          });
+                        }
                       : null,
                 ),
               );

@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/mesa.dart';
 import '../servicos/cozinha_service.dart';
 
-/// Persistência local do app para mesas e pedidos.
+/// Persistência local do app para mesas, reservas locais e pedidos.
 class LocalRepository {
   static const _pedidosKey = 'casa_bella_pedidos';
   static const _mesasKey = 'casa_bella_mesas';
@@ -155,11 +155,13 @@ class LocalRepository {
   }
 
   static Future<Map<String, dynamic>> abrirPedidoParaReserva({
-    required int reservaId,
-    required int mesaId,
+    required Map<String, dynamic> reserva,
     required String atendente,
   }) async {
-    final reserva = await _buscarReserva(reservaId);
+    final reservaId = _asInt(reserva['id_reserva']);
+    if (reservaId == null) {
+      throw ArgumentError('A reserva precisa ter um identificador válido.');
+    }
     final statusReserva = reserva['status']?.toString().toLowerCase();
     if (!const {
       'confirmada',
@@ -194,9 +196,8 @@ class LocalRepository {
     final novoPedido = <String, dynamic>{
       'id': id.toString(),
       'id_pedido': id,
-      'id_cliente': reserva['id_cliente'],
-      'id_mesa': mesaId,
-      'mesa': 'Mesa $mesaId',
+      'id_cliente': _asInt(reserva['id_cliente']),
+      'mesa': 'Atendimento por reserva',
       'atendente': atendente,
       'garcom': atendente,
       'id_reserva': reservaId,
@@ -347,14 +348,9 @@ class LocalRepository {
     return pedido;
   }
 
-  static Future<Map<String, dynamic>> _buscarReserva(int reservaId) async {
-    final reservas = await listarReservas();
-    final reserva = reservas.firstWhere(
-      (item) => (item['id_reserva'] as num?)?.toInt() == reservaId,
-      orElse: () => throw StateError('Reserva não encontrada.'),
-    );
-    return Map<String, dynamic>.from(reserva);
-  }
+  static int? _asInt(Object? value) => value is num
+      ? value.toInt()
+      : int.tryParse(value?.toString() ?? '');
 
   static bool _temPedidoAbertoParaReserva(
     List<Map<String, dynamic>> pedidos,

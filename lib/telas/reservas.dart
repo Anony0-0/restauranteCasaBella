@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../controllers/reserva_controller.dart';
-import 'reserva_mesas.dart';
+import 'pedido_reserva.dart';
+
+enum _AcaoReserva { atender, confirmar, alterar, cancelar }
 
 class ReservasPage extends StatefulWidget {
   final String atendente;
@@ -16,6 +18,8 @@ class _ReservasPageState extends State<ReservasPage> {
   final _controller = ReservaController();
   final _buscaController = TextEditingController();
   late Future<List<Map<String, dynamic>>> _reservasFuture;
+  String? _reservaAbrindo;
+  String? _reservaEmOperacao;
 
   @override
   void initState() {
@@ -37,35 +41,271 @@ class _ReservasPageState extends State<ReservasPage> {
   }
 
   Future<void> _selecionarReserva(Map<String, dynamic> reserva) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            ReservaMesasPage(reserva: reserva, atendente: widget.atendente),
+    if (_reservaAbrindo != null || _reservaEmOperacao != null) return;
+    setState(
+      () => _reservaAbrindo = reserva['id_reserva']?.toString() ?? 'inválida',
+    );
+    try {
+      final pedido = await _controller.abrirPedido(
+        reserva: reserva,
+        atendente: widget.atendente,
+      );
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PedidoReservaPage(reserva: reserva, pedido: pedido),
+        ),
+      );
+      if (mounted) _pesquisar(_buscaController.text);
+    } catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível abrir o atendimento: $erro')),
+      );
+    } finally {
+      if (mounted) setState(() => _reservaAbrindo = null);
+    }
+  }
+
+  int? _idDaReserva(Map<String, dynamic> reserva) {
+    final id = reserva['id_reserva'];
+    return id is num ? id.toInt() : int.tryParse(id?.toString() ?? '');
+  }
+
+  Future<void> _executarAcao({
+    required Map<String, dynamic> reserva,
+    required Future<void> Function(int id) executar,
+    required String sucesso,
+  }) async {
+    if (_reservaEmOperacao != null || _reservaAbrindo != null) return;
+    final id = _idDaReserva(reserva);
+    if (id == null || id <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A reserva não possui um ID válido.')),
+      );
+      return;
+    }
+
+    setState(() => _reservaEmOperacao = id.toString());
+    try {
+      await executar(id);
+      if (!mounted) return;
+      _pesquisar(_buscaController.text);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(sucesso)));
+    } catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Não foi possível salvar: $erro')));
+    } finally {
+      if (mounted) setState(() => _reservaEmOperacao = null);
+    }
+  }
+
+  Future<void> _confirmarReserva(Map<String, dynamic> reserva) async {
+    if (reserva['status']?.toString().toLowerCase() != 'pendente') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Somente reservas pendentes podem ser confirmadas.'),
+        ),
+      );
+      return;
+    }
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar reserva?'),
+        content: Text(
+          'Deseja confirmar a reserva de '
+          '${reserva['nome_cliente']?.toString() ?? 'Cliente'}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Voltar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirmar reserva'),
+          ),
+        ],
       ),
     );
-    if (mounted) _pesquisar(_buscaController.text);
+    if (confirmar != true || !mounted) return;
+
+    await _executarAcao(
+      reserva: reserva,
+      executar: _controller.confirmar,
+      sucesso: 'Reserva confirmada.',
+    );
   }
 
-  String _dataHorario(dynamic valor) {
-    final data = DateTime.tryParse(valor?.toString() ?? '');
-    if (data == null) return 'Horário não informado';
-    final local = data.toLocal();
-    final dia = local.day.toString().padLeft(2, '0');
-    final mes = local.month.toString().padLeft(2, '0');
-    final hora = local.hour.toString().padLeft(2, '0');
-    final minuto = local.minute.toString().padLeft(2, '0');
-    return '$dia/$mes/${local.year} • $hora:$minuto';
+  Future<void> _cancelarReserva(Map<String, dynamic> reserva) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancelar reserva?'),
+        content: Text(
+          'Deseja cancelar a reserva de '
+          '${reserva['nome_cliente']?.toString() ?? 'Cliente'}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Manter reserva'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Cancelar reserva'),
+          ),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+
+    await _executarAcao(
+      reserva: reserva,
+      executar: _controller.cancelar,
+      sucesso: 'Reserva cancelada.',
+    );
   }
 
-  String _statusLabel(String status) => switch (status.toLowerCase()) {
-    'pendente' => 'Pendente',
-    'confirmada' => 'Confirmada',
-    'em_andamento' || 'aberto' => 'Em atendimento',
-    'concluida' => 'Concluída',
-    'cancelada' => 'Cancelada',
-    _ => status.isEmpty ? 'Sem status' : status,
-  };
+  Future<void> _alterarReserva(Map<String, dynamic> reserva) async {
+    final horarioAtual = DateTime.tryParse(
+      reserva['horario']?.toString() ?? '',
+    );
+    if (horarioAtual == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível interpretar o horário da reserva.'),
+        ),
+      );
+      return;
+    }
+
+    final pessoasAtual =
+        (reserva['qtd_pessoas'] as num?)?.toInt() ??
+        int.tryParse(reserva['qtd_pessoas']?.toString() ?? '') ??
+        1;
+    var quantidadePessoas = pessoasAtual;
+    var dataSelecionada = horarioAtual;
+    var horaSelecionada = TimeOfDay.fromDateTime(horarioAtual);
+
+    final alteracao = await showDialog<({DateTime horario, int pessoas})>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, atualizarDialog) => AlertDialog(
+          title: const Text('Alterar reserva'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final selecionada = await showDatePicker(
+                    context: context,
+                    initialDate: dataSelecionada,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (selecionada != null) {
+                    atualizarDialog(() => dataSelecionada = selecionada);
+                  }
+                },
+                icon: const Icon(Icons.calendar_today),
+                label: Text(
+                  '${dataSelecionada.day.toString().padLeft(2, '0')}/'
+                  '${dataSelecionada.month.toString().padLeft(2, '0')}/'
+                  '${dataSelecionada.year}',
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final selecionada = await showTimePicker(
+                    context: context,
+                    initialTime: horaSelecionada,
+                  );
+                  if (selecionada != null) {
+                    atualizarDialog(() => horaSelecionada = selecionada);
+                  }
+                },
+                icon: const Icon(Icons.access_time),
+                label: Text(horaSelecionada.format(context)),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                initialValue: pessoasAtual.toString(),
+                onChanged: (valor) {
+                  final quantidade = int.tryParse(valor.trim());
+                  atualizarDialog(() => quantidadePessoas = quantidade ?? 0);
+                },
+                decoration: InputDecoration(labelText: 'Quantidade de pessoas'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Voltar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (quantidadePessoas <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Informe uma quantidade de pessoas maior que zero.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                Navigator.pop(context, (
+                  horario: DateTime(
+                    dataSelecionada.year,
+                    dataSelecionada.month,
+                    dataSelecionada.day,
+                    horaSelecionada.hour,
+                    horaSelecionada.minute,
+                  ),
+                  pessoas: quantidadePessoas,
+                ));
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (alteracao == null || !mounted) return;
+
+    await _executarAcao(
+      reserva: reserva,
+      executar: (id) => _controller.alterar(
+        reservaId: id,
+        horario: alteracao.horario,
+        quantidadePessoas: alteracao.pessoas,
+      ),
+      sucesso: 'Reserva atualizada.',
+    );
+  }
+
+  void _selecionarAcao(_AcaoReserva acao, Map<String, dynamic> reserva) {
+    switch (acao) {
+      case _AcaoReserva.atender:
+        _selecionarReserva(reserva);
+      case _AcaoReserva.confirmar:
+        _confirmarReserva(reserva);
+      case _AcaoReserva.alterar:
+        _alterarReserva(reserva);
+      case _AcaoReserva.cancelar:
+        _cancelarReserva(reserva);
+    }
+  }
 
   Color _statusColor(String status) => switch (status.toLowerCase()) {
     'confirmada' || 'em_andamento' || 'aberto' => const Color(0xFF47634A),
@@ -148,7 +388,7 @@ class _ReservasPageState extends State<ReservasPage> {
                           leading: const CircleAvatar(
                             backgroundColor: Color(0xFFF5E8E8),
                             child: Icon(
-                              Icons.event_seat_outlined,
+                              Icons.event_available_outlined,
                               color: Color(0xFF7B1E2B),
                             ),
                           ),
@@ -161,13 +401,17 @@ class _ReservasPageState extends State<ReservasPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(_dataHorario(reserva['horario'])),
+                                Text(
+                                  _controller.formatarHorario(
+                                    reserva['horario'],
+                                  ),
+                                ),
                                 Text(
                                   '$pessoas ${pessoas == 1 ? 'pessoa' : 'pessoas'}',
                                 ),
                                 const SizedBox(height: 5),
                                 Text(
-                                  _statusLabel(status),
+                                  _controller.rotuloStatus(status),
                                   style: TextStyle(
                                     color: _statusColor(status),
                                     fontWeight: FontWeight.w700,
@@ -176,15 +420,68 @@ class _ReservasPageState extends State<ReservasPage> {
                               ],
                             ),
                           ),
-                          trailing: Icon(
-                            inativa
-                                ? Icons.check_circle_outline
-                                : Icons.chevron_right,
-                            color: inativa
-                                ? Colors.black38
-                                : const Color(0xFF7B1E2B),
-                          ),
-                          enabled: !inativa,
+                          trailing:
+                              _reservaAbrindo ==
+                                      reserva['id_reserva']?.toString() ||
+                                  _reservaEmOperacao ==
+                                      reserva['id_reserva']?.toString()
+                              ? const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : inativa
+                              ? const Icon(
+                                  Icons.check_circle_outline,
+                                  color: Colors.black38,
+                                )
+                              : PopupMenuButton<_AcaoReserva>(
+                                  tooltip: 'Opções da reserva',
+                                  onSelected: (acao) =>
+                                      _selecionarAcao(acao, reserva),
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: _AcaoReserva.atender,
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: Icon(Icons.receipt_long),
+                                        title: Text('Iniciar atendimento'),
+                                      ),
+                                    ),
+                                    if (status.toLowerCase() == 'pendente')
+                                      const PopupMenuItem(
+                                        value: _AcaoReserva.confirmar,
+                                        child: ListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          leading: Icon(
+                                            Icons.event_available_outlined,
+                                          ),
+                                          title: Text('Confirmar reserva'),
+                                        ),
+                                      ),
+                                    const PopupMenuItem(
+                                      value: _AcaoReserva.alterar,
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: Icon(Icons.edit_outlined),
+                                        title: Text('Alterar reserva'),
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: _AcaoReserva.cancelar,
+                                      child: ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        leading: Icon(Icons.cancel_outlined),
+                                        title: Text('Cancelar reserva'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                          enabled:
+                              !inativa &&
+                              _reservaAbrindo == null &&
+                              _reservaEmOperacao == null,
                           onTap: inativa
                               ? null
                               : () => _selecionarReserva(reserva),

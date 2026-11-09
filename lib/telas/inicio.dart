@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../controllers/pedido_controller.dart';
 import 'acompanhamento.dart';
-import 'mesas.dart';
 import 'reservas.dart';
 
 class InicioPage extends StatelessWidget {
@@ -187,19 +186,10 @@ class InicioPage extends StatelessWidget {
                     SizedBox(
                       width: (constraints.maxWidth - 14) / 2,
                       child: _ActionCard(
-                        icon: Icons.add_shopping_cart_rounded,
-                        title: 'Novo pedido',
-                        subtitle: 'Selecione uma mesa e monte o pedido.',
-                        tone: const Color(0xFF7B1E2B),
-                        onTap: () => _novoPedido(context),
-                      ),
-                    ),
-                    SizedBox(
-                      width: (constraints.maxWidth - 14) / 2,
-                      child: _ActionCard(
-                        icon: Icons.event_seat_outlined,
-                        title: 'Atender reserva',
-                        subtitle: 'Localize o cliente e abra o pedido da mesa.',
+                        icon: Icons.event_available_outlined,
+                        title: 'Atender reservas',
+                        subtitle:
+                            'Selecione uma reserva e monte o pedido do cliente.',
                         tone: const Color(0xFFB17B36),
                         onTap: () => _abrirReservas(context),
                       ),
@@ -218,17 +208,10 @@ class InicioPage extends StatelessWidget {
                 )
               else ...[
                 _ActionCard(
-                  icon: Icons.add_shopping_cart_rounded,
-                  title: 'Novo pedido',
-                  subtitle: 'Selecione uma mesa e monte o pedido.',
-                  tone: const Color(0xFF7B1E2B),
-                  onTap: () => _novoPedido(context),
-                ),
-                const SizedBox(height: 12),
-                _ActionCard(
-                  icon: Icons.event_seat_outlined,
-                  title: 'Atender reserva',
-                  subtitle: 'Localize o cliente e abra o pedido da mesa.',
+                  icon: Icons.event_available_outlined,
+                  title: 'Atender reservas',
+                  subtitle:
+                      'Selecione uma reserva e monte o pedido do cliente.',
                   tone: const Color(0xFFB17B36),
                   onTap: () => _abrirReservas(context),
                 ),
@@ -265,7 +248,7 @@ class InicioPage extends StatelessWidget {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              'Confira a mesa antes de enviar o pedido à cozinha.',
+                              'Confira os itens antes de enviar o pedido à cozinha.',
                               style: TextStyle(
                                 color: Colors.black54,
                                 fontSize: 13,
@@ -296,13 +279,6 @@ class InicioPage extends StatelessWidget {
       ),
     ),
   );
-
-  void _novoPedido(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => MesasPage(garcom: nomeGarcom)),
-    );
-  }
 
   void _abrirReservas(BuildContext context) {
     Navigator.push(

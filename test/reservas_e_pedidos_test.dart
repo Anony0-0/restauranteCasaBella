@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:casa_bella/repositories/local_repository.dart';
+import 'package:casa_bella/servicos/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,7 +15,13 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    ApiService.client = MockClient((_) async => http.Response('[]', 200));
     await LocalRepository.limparDadosTestes();
+  });
+
+  tearDown(() {
+    ApiService.client.close();
+    ApiService.client = http.Client();
   });
 
   test('confirma reserva apenas quando a mesa atende a capacidade e não está ocupada', () async {
@@ -49,9 +60,29 @@ void main() {
   });
 
   test(
+    'abre pedido direto para reserva da API sem mesa ou cópia local',
+    () async {
+      final pedido = await LocalRepository.abrirPedidoParaReserva(
+        reserva: {
+          'id_reserva': '45',
+          'id_cliente': '12',
+          'nome_cliente': 'Cliente da API',
+          'status': 'confirmada',
+        },
+        atendente: 'Atendente A',
+      );
+
+      expect(pedido['id_reserva'], 45);
+      expect(pedido['id_cliente'], 12);
+      expect(pedido['id_mesa'], isNull);
+      expect(pedido['mesa'], 'Atendimento por reserva');
+      expect((await LocalRepository.listarPedidos()).single, pedido);
+    },
+  );
+
+  test(
     'reutiliza o mesmo pedido aberto para a reserva e acumula novas rodadas',
     () async {
-      final mesa = await LocalRepository.criarMesaTeste(capacidade: 6);
       final reserva = await LocalRepository.criarReserva(
         nomeCliente: 'Carlos Mendes',
         telefone: '11977776666',
@@ -60,16 +91,11 @@ void main() {
         horario: DateTime.utc(2026, 11, 8, 19, 30),
       );
 
-      await LocalRepository.confirmarReserva(
-        reservaId: reserva['id_reserva'] as int,
-        mesaId: mesa['id_mesa'] as int,
-      );
-
       final primeiroPedido = await LocalRepository.abrirPedidoParaReserva(
-        reservaId: reserva['id_reserva'] as int,
-        mesaId: mesa['id_mesa'] as int,
+        reserva: reserva,
         atendente: 'Atendente A',
       );
+      expect(primeiroPedido['id_mesa'], isNull);
 
       final pedidoComEntrada = await LocalRepository.adicionarItensAoPedido(
         pedidoId: primeiroPedido['id_pedido'] as int,
@@ -79,8 +105,7 @@ void main() {
       );
 
       final segundoPedido = await LocalRepository.abrirPedidoParaReserva(
-        reservaId: reserva['id_reserva'] as int,
-        mesaId: mesa['id_mesa'] as int,
+        reserva: reserva,
         atendente: 'Atendente A',
       );
 
@@ -137,6 +162,21 @@ void main() {
       qtdPessoas: 2,
       horario: DateTime.utc(2026, 11, 7, 20),
     );
+    ApiService.client = MockClient(
+      (_) async => http.Response(
+        jsonEncode([
+          {
+            'id_reserva': reserva['id_reserva'],
+            'id_cliente': 12,
+            'cliente': reserva['nome_cliente'],
+            'horario': reserva['horario'],
+            'qtd_pessoas': reserva['qtd_pessoas'],
+            'status': reserva['status'],
+          },
+        ]),
+        200,
+      ),
+    );
 
     await tester.pumpWidget(
       const MaterialApp(home: ReservasPage(atendente: 'Atendente Teste')),
@@ -146,20 +186,9 @@ void main() {
 
     await tester.tap(find.text('Ana Ribeiro'));
     await tester.pumpAndSettle();
-    expect(find.text('Selecionar mesa'), findsOneWidget);
-
-    await tester.tap(find.text('Mesa 1'));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Confirmar mesa e acessar pedido'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Confirmar mesa e acessar pedido'), findsOneWidget);
-    await tester.tap(find.text('Confirmar mesa e acessar pedido'));
-    await tester.pumpAndSettle();
     expect(find.text('Atendimento da reserva'), findsOneWidget);
+    expect(find.textContaining('2 pessoas'), findsOneWidget);
+    expect(find.textContaining('Reserva: Pendente'), findsOneWidget);
     expect(
       find.text('Pedido sem itens. Adicione a primeira rodada.'),
       findsOneWidget,
@@ -169,8 +198,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Cardápio'), findsOneWidget);
     await tester.ensureVisible(find.text('Bruschetta al Pomodoro'));
-    await tester.ensureVisible(find.text('Adicionar nesta rodada').first);
-    await tester.tap(find.text('Adicionar nesta rodada').first);
+    await tester.ensureVisible(find.text('Adicionar ao pedido').first);
+    await tester.tap(find.text('Adicionar ao pedido').first);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Adicionar itens ao pedido'));
     await tester.pumpAndSettle();
@@ -186,13 +215,9 @@ void main() {
     expect(pedidos, hasLength(1));
     expect(pedidos.single['id_reserva'], reserva['id_reserva']);
     expect(pedidos.single['status'], 'concluido');
+    expect(pedidos.single['id_mesa'], isNull);
 
     final reservas = await LocalRepository.listarReservas();
     expect(reservas.single['status'], 'concluida');
-    final mesas = await LocalRepository.listarMesas();
-    expect(
-      mesas.firstWhere((mesa) => mesa['id_mesa'] == 1)['reservado'],
-      false,
-    );
   });
 }

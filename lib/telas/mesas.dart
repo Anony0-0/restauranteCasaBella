@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../controllers/mesa_controller.dart';
 import '../models/mesa.dart';
 import 'cardapio.dart';
+import 'pedido.dart';
 
 class MesasPage extends StatefulWidget {
   final String garcom;
@@ -16,21 +17,36 @@ class MesasPage extends StatefulWidget {
 class _MesasPageState extends State<MesasPage> {
   final _controller = MesaController();
   late final Future<List<Mesa>> _mesasFuture = _controller.listar();
+
   int? _mesaSelecionada;
   bool _balcaoSelecionado = false;
 
-  void _abrirCardapio({required String mesa, int? mesaId}) {
+  Future<void> _abrirCardapio({required String mesa, int? mesaId}) async {
     if (!_balcaoSelecionado && _mesaSelecionada == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione uma mesa ou o balcão.')),
       );
       return;
     }
+
+    final itens = await Navigator.push<List<Map<String, dynamic>>>(
+      context,
+      MaterialPageRoute(builder: (_) => const CardapioPage()),
+    );
+
+    if (!mounted || itens == null || itens.isEmpty) {
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            CardapioPage(mesa: mesa, mesaId: mesaId, garcom: widget.garcom),
+        builder: (_) => PedidoPage(
+          mesa: mesa,
+          mesaId: mesaId,
+          garcom: widget.garcom,
+          itens: itens,
+        ),
       ),
     );
   }
@@ -44,12 +60,15 @@ class _MesasPageState extends State<MesasPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
+
         if (snapshot.hasError || !snapshot.hasData) {
           return const Center(
             child: Text('Não foi possível carregar as mesas.'),
           );
         }
+
         final mesas = snapshot.data!;
+
         return LayoutBuilder(
           builder: (context, constraints) {
             final colunas = constraints.maxWidth > 900
@@ -57,6 +76,7 @@ class _MesasPageState extends State<MesasPage> {
                 : constraints.maxWidth > 560
                 ? 3
                 : 2;
+
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
               children: [
@@ -95,7 +115,9 @@ class _MesasPageState extends State<MesasPage> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 24),
+
                 const Text(
                   'MESAS DISPONÍVEIS',
                   style: TextStyle(
@@ -104,7 +126,9 @@ class _MesasPageState extends State<MesasPage> {
                     color: Color(0xFF726B67),
                   ),
                 ),
+
                 const SizedBox(height: 12),
+
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -118,6 +142,7 @@ class _MesasPageState extends State<MesasPage> {
                   itemBuilder: (context, index) {
                     final mesa = mesas[index];
                     final selecionada = _mesaSelecionada == mesa.idMesa;
+
                     return _MesaCard(
                       mesa: mesa,
                       selecionada: selecionada,
@@ -130,7 +155,9 @@ class _MesasPageState extends State<MesasPage> {
                     );
                   },
                 ),
+
                 const SizedBox(height: 12),
+
                 Card(
                   child: InkWell(
                     onTap: () => setState(() {
@@ -165,7 +192,9 @@ class _MesasPageState extends State<MesasPage> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
+
                 FilledButton.icon(
                   onPressed: _balcaoSelecionado
                       ? () => _abrirCardapio(mesa: 'Balcão')
@@ -204,11 +233,13 @@ class _MesaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final indisponivel = mesa.reservado;
+
     final cor = indisponivel
         ? const Color(0xFF89827E)
         : selecionada
         ? const Color(0xFF7B1E2B)
         : const Color(0xFF4F6B52);
+
     return Card(
       color: selecionada ? const Color(0xFFFFF5F3) : Colors.white,
       shape: RoundedRectangleBorder(

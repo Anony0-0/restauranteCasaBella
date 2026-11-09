@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../controllers/pedido_controller.dart';
+import '../controllers/reserva_controller.dart';
 import 'cardapio.dart';
 
 class PedidoReservaPage extends StatefulWidget {
@@ -19,11 +20,14 @@ class PedidoReservaPage extends StatefulWidget {
 
 class _PedidoReservaPageState extends State<PedidoReservaPage> {
   final _controller = PedidoController();
+  final _reservaController = ReservaController();
   late Map<String, dynamic> _pedido = Map<String, dynamic>.from(widget.pedido);
   bool _processando = false;
 
   int get _pedidoId => (_pedido['id_pedido'] as num).toInt();
-  int get _reservaId => (widget.reserva['id_reserva'] as num).toInt();
+  int get _reservaId =>
+      (widget.reserva['id_reserva'] as num?)?.toInt() ??
+      int.parse(widget.reserva['id_reserva'].toString());
   List<Map<String, dynamic>> get _itens =>
       (_pedido['itens'] as List<dynamic>? ?? const [])
           .map((item) => Map<String, dynamic>.from(item as Map))
@@ -70,12 +74,7 @@ class _PedidoReservaPageState extends State<PedidoReservaPage> {
     final itens = await Navigator.push<List<Map<String, dynamic>>>(
       context,
       MaterialPageRoute(
-        builder: (_) => CardapioPage(
-          mesa: _pedido['mesa']?.toString() ?? 'Mesa',
-          mesaId: (_pedido['id_mesa'] as num?)?.toInt(),
-          garcom: _pedido['atendente']?.toString() ?? 'Atendente',
-          modoSelecao: true,
-        ),
+        builder: (_) => const CardapioPage(),
       ),
     );
     if (!mounted || itens == null || itens.isEmpty) return;
@@ -137,7 +136,7 @@ class _PedidoReservaPageState extends State<PedidoReservaPage> {
       builder: (context) => AlertDialog(
         title: const Text('Fechar conta?'),
         content: Text(
-          'Total da reserva: ${_dinheiro(_total)}. A mesa será liberada.',
+          'Total da reserva: ${_dinheiro(_total)}.',
         ),
         actions: [
           TextButton(
@@ -210,7 +209,7 @@ class _PedidoReservaPageState extends State<PedidoReservaPage> {
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     subtitle: Text(
-                      '${_pedido['mesa'] ?? 'Mesa'} • Pedido #$_pedidoId\n${_statusLegivel(status)}',
+                      '${_reservaController.formatarHorario(widget.reserva['horario'])} • ${(widget.reserva['qtd_pessoas'] as num?)?.toInt() ?? 0} pessoas\nReserva: ${_reservaController.rotuloStatus(widget.reserva['status']?.toString() ?? '')} • Pedido #$_pedidoId\n${_statusLegivel(status)}',
                     ),
                     isThreeLine: true,
                   ),
