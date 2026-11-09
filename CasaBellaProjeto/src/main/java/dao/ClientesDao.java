@@ -78,7 +78,6 @@ public class ClientesDao {
     }
 
 
-
     //Excluir Clientes
     public int excluirCliente(String email) throws SQLException, ClassNotFoundException {
         conectar();
