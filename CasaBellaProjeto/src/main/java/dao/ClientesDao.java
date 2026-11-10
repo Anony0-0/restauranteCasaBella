@@ -77,6 +77,20 @@ public class ClientesDao {
         }
     }
 
+    // Descobre o id do cliente pelo e-mail. Retorna null se não existir.
+    public Integer buscarIdPorEmail(String email) throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT id_cliente FROM clientes WHERE email = ?")) {
+            ps.setString(1, email);
+            try (ResultSet r = ps.executeQuery()) {
+                return r.next() ? r.getInt("id_cliente") : null;
+            }
+        } finally {
+            con.close();
+        }
+    }
+
 
     //Excluir Clientes
     public int excluirCliente(String email) throws SQLException, ClassNotFoundException {
@@ -87,7 +101,7 @@ public class ClientesDao {
         return st.executeUpdate();
 
     }
-    
+
 
     // Retorna 1 se atualizou, 0 se o cliente não existe, -1 se o e-mail já é de outro cliente.
     // novaSenha em branco = mantém a senha atual.
