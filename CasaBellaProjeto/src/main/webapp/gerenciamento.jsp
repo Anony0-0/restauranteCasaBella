@@ -302,7 +302,7 @@
                             <td><%= esc(clientes.getString("telefone")) %></td>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="ControleCliente?origem=editar&id=<%= clientes.getInt("id_cliente") %>">Editar</a>
+                                    <a href="<%= request.getContextPath() %>/ControleCliente?origem=editar&id=<%= clientes.getInt("id_cliente") %>">Editar</a>
                                 </div>
                             </td>
                         </tr>
@@ -322,8 +322,12 @@
             <section class="admin-panel" id="panel-reservas" aria-label="Reservas">
                 <div class="admin-panel-header">
                     <h1>Reservas</h1>
-                    <a href="#" class="btn btn-primary">Nova reserva</a>
+                    <a href="<%= request.getContextPath() %>/gerenciamentoAdmins/cadastroReserva.jsp" class="btn btn-primary">Nova reserva</a>
                 </div>
+
+                <% if (aviso != null && "reservas".equals(aba)) { %>
+                <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
+                <% } %>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
@@ -370,13 +374,26 @@
                             %>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
-                                    <a href="#">Editar</a>
-                                    <% if ("confirmada".equalsIgnoreCase(statusReserva) && !semMesaReserva) { %>
+                                    <% if ("pendente".equalsIgnoreCase(statusReserva)) { %>
+                                    <form action="ControleReserva" method="post" style="display:inline">
+                                        <input type="hidden" name="origem" value="confirmarChegada" />
+                                        <input type="hidden" name="id_reserva" value="<%= idReservaLinha %>" />
+                                        <button type="submit" class="chip-btn">Confirmar chegada</button>
+                                    </form>
+                                    <% } else if ("confirmada".equalsIgnoreCase(statusReserva) && !semMesaReserva) { %>
                                     <form action="ControlePedidos" method="post" style="display:inline">
                                         <input type="hidden" name="origem" value="cadastrarPedido" />
                                         <input type="hidden" name="id_reserva" value="<%= idReservaLinha %>" />
                                         <button type="submit" class="chip-btn">Abrir pedido</button>
+                                    </form>
+                                    <% } %>
+
+                                    <% if ("pendente".equalsIgnoreCase(statusReserva) || "confirmada".equalsIgnoreCase(statusReserva)) { %>
+                                    <form action="ControleReserva" method="post" style="display:inline"
+                                          onsubmit="return confirm('Cancelar esta reserva?');">
+                                        <input type="hidden" name="origem" value="cancelar" />
+                                        <input type="hidden" name="id_reserva" value="<%= idReservaLinha %>" />
+                                        <button type="submit" class="chip-btn">Cancelar</button>
                                     </form>
                                     <% } %>
                                 </div>
@@ -436,7 +453,6 @@
                             <td><span class="status-pill <%= statusClass(dispProduto) %>"><%= rotuloDisponibilidade(dispProduto) %></span></td>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="#">Ver</a>
                                     <a href="#">Editar</a>
                                 </div>
                             </td>
