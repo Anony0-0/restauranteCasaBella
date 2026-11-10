@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'telas/inicio.dart';
+import 'telas/login.dart';
 
 void main() {
   runApp(const CasaBellaApp());
@@ -56,7 +56,7 @@ class CasaBellaApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const InicioPage(),
+      home: const LoginPage(),
     );
   }
 }
