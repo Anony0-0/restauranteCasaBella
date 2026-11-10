@@ -1,3 +1,5 @@
+//url api: http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/reservas
+
 package controle;
 
 import dao.ReservasDao;
