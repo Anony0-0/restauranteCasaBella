@@ -17,7 +17,9 @@ Tabela pedidos
 <img width="1863" height="929" alt="image" src="https://github.com/user-attachments/assets/9c0a68a1-99e6-48b2-98f6-8b1d976a3ab1" />
 
 # Tabela Reservas
-Tabela Funcionários (listagem funcionando)
+<img width="1557" height="907" alt="image" src="https://github.com/user-attachments/assets/52d6ea70-ba56-49c1-8a35-2f31cadfe649" />
+
+Tabela Funcionários
 <img width="1879" height="927" alt="image" src="https://github.com/user-attachments/assets/b281c67d-0773-4842-90e9-4003d58e4541" />
 
 Tela Login
