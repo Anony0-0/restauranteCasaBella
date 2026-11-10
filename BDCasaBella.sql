@@ -183,24 +183,24 @@ INSERT INTO funcionarios (id_func, email, nome, senha, cargo, admissao)
 SELECT 'juan10','juan@casabella.com', 'Juan Carlos', 'juancb10', 'Suporte Técnico', '2025-04-07'
 WHERE NOT EXISTS (SELECT 1 FROM funcionarios WHERE email = 'juan@casabella.com');
 
-INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
-SELECT 'Massas', 'Spaghetti alla Carbonara', 'Massa com queijo, ovos e guanciale', 56.00, NULL, 'disponivel'
+INSERT INTO produtos (id_produto, categoria, nome, descricao, preco, disponibilidade)
+SELECT '11','Massas', 'Spaghetti alla Carbonara', 'Massa com queijo, ovos e guanciale', 56.00, 'disponivel'
 WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE nome = 'Spaghetti alla Carbonara');
 
-INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
-SELECT 'Pizzas', 'Pizza Margherita', 'Molho de tomate, queijo e manjericao', 54.00, NULL, 'disponivel'
+INSERT INTO produtos (id_produto, categoria, nome, descricao, preco, disponibilidade)
+SELECT '21','Pizzas', 'Pizza Margherita', 'Molho de tomate, queijo e manjericao', 54.00, 'disponivel'
 WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE nome = 'Pizza Margherita');
 
-INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
-SELECT 'Bebidas', 'Agua mineral', 'Garrafa de 500 ml', 6.00, NULL, 'disponivel'
+INSERT INTO produtos (id_produto,categoria, nome, descricao, preco, disponibilidade)
+SELECT '61','Bebidas', 'Agua mineral', 'Garrafa de 500 ml', 6.00, 'disponivel'
 WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE nome = 'Agua mineral');
 
-INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
-SELECT 'Sobremesas', 'Tiramisu', 'Sobremesa italiana com cafe e mascarpone', 32.00, NULL, 'disponivel'
+INSERT INTO produtos (id_produto, categoria, nome, descricao, preco, disponibilidade)
+SELECT '51', 'Sobremesas', 'Tiramisu', 'Sobremesa italiana com cafe e mascarpone', 32.00, 'disponivel'
 WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE nome = 'Tiramisu');
 
-INSERT INTO produtos (categoria, nome, descricao, preco, imagem, disponibilidade)
-SELECT 'Vinhos', 'Chianti Classico', 'Vinho tinto italiano', 168.00, NULL, 'disponivel'
+INSERT INTO produtos (id_produto, categoria, nome, descricao, preco, disponibilidade)
+SELECT '71' ,'Vinhos', 'Chianti Classico', 'Vinho tinto italiano', 168.00, 'disponivel'
 WHERE NOT EXISTS (SELECT 1 FROM produtos WHERE nome = 'Chianti Classico');
 
 INSERT INTO mesas (id_mesa, capacidade, reservado)
