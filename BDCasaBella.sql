@@ -12,16 +12,17 @@ CREATE TABLE IF NOT EXISTS clientes (
     UNIQUE KEY uq_clientes_email (email)
 ) ENGINE=InnoDB;
 
---PRECISA MUDAR
 CREATE TABLE IF NOT EXISTS funcionarios (
-	id_func VARCHAR(30) NOT NULL,
-	nome VARCHAR(120) NOT NULL,
-	usermobi VARCHAR (120) NOT NULL
+    id_func VARCHAR(30) NOT NULL,
+    nome VARCHAR(120) NOT NULL,
+    usermobi VARCHAR(120) NOT NULL,
     email VARCHAR(80) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     cargo VARCHAR(50) NOT NULL,
     admissao DATE,
-    PRIMARY KEY (id_func)
+    PRIMARY KEY (id_func),
+    UNIQUE (email),
+    UNIQUE (usermobi)
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS produtos (
