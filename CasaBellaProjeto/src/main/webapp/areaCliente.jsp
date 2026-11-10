@@ -1,5 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@page import="java.util.*, java.text.SimpleDateFormat, java.sql.ResultSet, java.sql.Timestamp, dao.ReservasDao"%>
+<%@page import="java.util.*, java.text.SimpleDateFormat, java.sql.ResultSet, java.sql.Timestamp"%>
 <%!
     // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
     private String esc(String s) {
@@ -64,7 +64,7 @@
                     <li><a href="index.html#contato">Contato</a></li>
                 </ul>
             </nav>
-            <a href="areaCliente.jsp" class="avatar-button" aria-label="Minha área">
+            <a href="ControleLogin" class="avatar-button" aria-label="Minha área">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="3.6"></circle>
                     <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"></path>
@@ -136,102 +136,44 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <%
-                                try {
-                                    ReservasDao reservaDao = new ReservasDao();
-                                    if (idClienteLogado != null) {
-                                        ResultSet rsReservas = reservaDao.listarReservasPorCliente(idClienteLogado);
-                                        boolean temReservas = false;
+                        <%
+                            ResultSet rsReservas = (ResultSet) request.getAttribute("reservas");
+                            SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                            boolean temReservas = false;
 
-                                        while (rsReservas != null && rsReservas.next()) {
-                                            temReservas = true;
-                                            Timestamp horarioReserva = rsReservas.getTimestamp("horario");
-                                            int qtdPessoas = rsReservas.getInt("qtd_pessoas");
-                                            int idMesa = rsReservas.getInt("id_mesa");
-                                            String statusReserva = rsReservas.getString("status");
+                            while (rsReservas != null && rsReservas.next()) {
+                                temReservas = true;
+                                Timestamp horarioReserva = rsReservas.getTimestamp("horario");
+                                int qtdPessoas = rsReservas.getInt("qtd_pessoas");
+                                int idMesa = rsReservas.getInt("id_mesa");
+                                String statusReserva = rsReservas.getString("status");
 
-                                            SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                                            String dataFormatada = formatoData.format(horarioReserva);
-
-                                            String classeStatus = "is-pendente";
-                                            if ("Confirmada".equalsIgnoreCase(statusReserva)) classeStatus = "is-confirmada";
-                                            else if ("Realizada".equalsIgnoreCase(statusReserva)) classeStatus = "is-realizada";
-                                            else if ("Cancelada".equalsIgnoreCase(statusReserva)) classeStatus = "is-cancelada";
-                            %>
-                            <tr>
-                                <td><%= esc(dataFormatada) %></td>
-                                <td><%= qtdPessoas %></td>
-                                <td>Mesa <%= idMesa %></td>
-                                <td><span class="status-pill <%= classeStatus %>"><%= esc(statusReserva) %></span></td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
-                            </tr>
-                            <%
-                                }
-                                if (!temReservas) {
-                            %>
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registadas.</td>
-                            </tr>
-                            <%
-                                    }
-                                }
-                            } catch (Exception e) {
-                            %>
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: #ff6b6b;">Erro ao carregar reservas.</td>
-                            </tr>
-                            <%
-                                }
-                            %>
-                            </tbody>
+                                String classeStatus = "is-pendente";
+                                if ("Confirmada".equalsIgnoreCase(statusReserva)) classeStatus = "is-confirmada";
+                                else if ("Realizada".equalsIgnoreCase(statusReserva)) classeStatus = "is-realizada";
+                                else if ("Cancelada".equalsIgnoreCase(statusReserva)) classeStatus = "is-cancelada";
+                        %>
+                        <tr>
+                            <td><%= esc(formatoData.format(horarioReserva)) %></td>
+                            <td><%= qtdPessoas %></td>
+                            <td>Mesa <%= idMesa %></td>
+                            <td><span class="status-pill <%= classeStatus %>"><%= esc(statusReserva) %></span></td>
+                            <td><a href="#" class="chip-btn">Ver</a></td>
+                        </tr>
+                        <%
+                            }
+                            if (!temReservas) {
+                        %>
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registradas.</td>
+                        </tr>
+                        <%
+                            }
+                        %>
+                        </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- ========== PEDIDOS ========== -->
-                <div class="account-panel" id="acc-panel-pedidos">
-                    <div class="admin-table-wrap">
-                        <table class="admin-table">
-                            <thead>
-                            <tr>
-                                <th>Nº</th>
-                                <th>Data</th>
-                                <th>Itens</th>
-                                <th>Status</th>
-                                <th>Total</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>#1042</td>
-                                <td>24/09/2026</td>
-                                <td>Tagliatelle al Ragù, Risotto ai Funghi, Tiramisù</td>
-                                <td><span class="status-pill is-concluido">Concluído</span></td>
-                                <td>R$ 187,00</td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
-                            </tr>
-                            <tr>
-                                <td>#1018</td>
-                                <td>12/09/2026</td>
-                                <td>Pizza Margherita, Taça de vinho tinto</td>
-                                <td><span class="status-pill is-concluido">Concluído</span></td>
-                                <td>R$ 142,50</td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
-                            </tr>
-                            <tr>
-                                <td>#0977</td>
-                                <td>20/07/2026</td>
-                                <td>Tagliatelle al Ragù, Tiramisù</td>
-                                <td><span class="status-pill is-concluido">Concluído</span></td>
-                                <td>R$ 98,00</td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <!-- ========== MEUS DADOS========== -->
                 <div class="account-panel" id="acc-panel-dados">
                     <dl class="profile-list">
