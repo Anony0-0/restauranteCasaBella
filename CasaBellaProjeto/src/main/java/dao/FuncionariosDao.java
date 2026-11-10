@@ -21,15 +21,16 @@ public class FuncionariosDao {
         conectado = ConexaoBD.conectar();
     }
 
-    public int cadastrarFuncionarios(String id_func, String email, String nome, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarFuncionarios(String id_func, String nome, String usermobi, String email, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
-        st = conectado.prepareStatement("insert into funcionarios values(?,?,?,?,?,?)");
+        st = conectado.prepareStatement("insert into funcionarios values(?,?,?,?,?,?,?)");
         st.setString(1,id_func);
-        st.setString(2, email);
-        st.setString(3, nome);
-        st.setString(4, senha);
-        st.setString(5, cargo);
-        st.setString(6, admissao);
+        st.setString(2, nome);
+        st.setString(3, usermobi);
+        st.setString(4, email);
+        st.setString(5, senha);
+        st.setString(6, cargo);
+        st.setString(7, admissao);
         resultado = st.executeUpdate(); //Executa o insert acima
         return resultado;
     }
@@ -48,6 +49,25 @@ public class FuncionariosDao {
             return rs.getString("nome");
         } else {
             return null;
+        }
+    }
+
+    // Login do mobile: devolve {nome, cargo} ou null se e-mail/senha não baterem.
+    // Fecha a conexão sozinho.
+    public String[] logarMobile(String email, String senha) throws ClassNotFoundException, SQLException {
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT nome, cargo FROM funcionarios WHERE email = ? AND senha = ?")) {
+            ps.setString(1, email);
+            ps.setString(2, senha);
+            try (ResultSet r = ps.executeQuery()) {
+                if (r.next()) {
+                    return new String[]{r.getString("nome"), r.getString("cargo")};
+                }
+                return null;
+            }
+        } finally {
+            con.close();
         }
     }
 
