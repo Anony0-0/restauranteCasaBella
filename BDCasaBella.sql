@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 CREATE TABLE IF NOT EXISTS funcionarios (
     id_func VARCHAR(30) NOT NULL,
     nome VARCHAR(120) NOT NULL,
-    usermobi VARCHAR(120) NOT NULL,
+    usermobi VARCHAR(40),
     email VARCHAR(80) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     cargo VARCHAR(50) NOT NULL,
