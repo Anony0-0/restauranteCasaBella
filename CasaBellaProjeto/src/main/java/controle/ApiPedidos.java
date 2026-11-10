@@ -1,3 +1,7 @@
+//urls pedidos:
+// criar pedidos: http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos
+//adicionar produtos: http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos/itens
+
 package controle;
 
 import dao.ItensPedidoDao;
