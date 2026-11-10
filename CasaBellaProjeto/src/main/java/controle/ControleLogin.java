@@ -38,7 +38,11 @@ public class ControleLogin extends HttpServlet {
             nome = new ClientesDao().logarCliente(email, senha);
             if (nome != null) {
                 guardarLogin(request, "cliente", nome, email);
-                request.getRequestDispatcher("areaCliente.jsp").forward(request, response);
+
+                Integer idCliente = new ClientesDao().buscarIdPorEmail(email);
+                request.getSession().setAttribute("id_cliente", idCliente);
+
+                response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
                 return;
             }
 
@@ -75,12 +79,11 @@ public class ControleLogin extends HttpServlet {
             } else {
                 response.sendRedirect("areaCliente.jsp");
             }
-        } else {
-            response.sendRedirect("login.html");
-        }
+        }  else {
+        response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
+                }
     }
 
-    // request: usado pela tela que aparece agora. sessão: usada pelas próximas.
     private void guardarLogin(HttpServletRequest request, String perfil, String nome, String email) {
         request.setAttribute("nome", nome);
         request.setAttribute("email", email);
