@@ -39,6 +39,10 @@ public class ControleCliente extends HttpServlet {
             atualizar(request, response);
             return;
         }
+        if ("excluirPainel".equalsIgnoreCase(origem)) {
+            excluirPeloPainel(request, response);
+            return;
+        }
 
         String mensagem;
 
@@ -113,8 +117,7 @@ public class ControleCliente extends HttpServlet {
                 return;
             }
             request.setAttribute("cliente", cliente);
-            request.getRequestDispatcher("/alterarClientePainel.jsp").forward(request, response);
-
+            request.getRequestDispatcher("/gerenciamentoAdmins/alterarClientePainel.jsp").forward(request, response);
         } catch (NumberFormatException | NullPointerException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Cliente inválido.");
         } catch (ClassNotFoundException | SQLException e) {
@@ -169,12 +172,12 @@ public class ControleCliente extends HttpServlet {
             throws ServletException, IOException {
         request.setAttribute("cliente", new String[]{String.valueOf(id), nome, email, telefone});
         request.setAttribute("erro", erro);
-        request.getRequestDispatcher("/alterarClientePainel.jsp").forward(request, response);
-    }
+        request.getRequestDispatcher("/gerenciamentoAdmins/alterarClientePainel.jsp").forward(request, response);    }
 
     private String valor(String s) {
         return s == null ? "" : s.trim();
     }
+
 
     // Só a equipe edita clientes
     private boolean ehFuncionario(HttpServletRequest request) {
@@ -182,4 +185,35 @@ public class ControleCliente extends HttpServlet {
         // return sessao != null && "funcionario".equals(sessao.getAttribute("perfil"));
         return true; // TEMPORÁRIO: troque pela linha de cima quando o login da equipe gravar o perfil
     }
+
+    private void excluirPeloPainel(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ehFuncionario(request)) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id_cliente").trim());
+            ClientesDao dao = new ClientesDao();
+            int resultado = dao.excluirPorId(id);
+
+            if (resultado == 1) {
+                request.getSession().setAttribute("aviso", "Cliente excluído com sucesso.");
+                response.sendRedirect("PainelGerenciamento?aba=clientes");
+            } else if (resultado == -1) {
+                String[] c = dao.buscarPorId(id);
+                devolverForm(request, response, id, c[1], c[2], c[3],
+                        "Não é possível excluir: o cliente tem reservas ligadas à conta.");
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Cliente não encontrado.");
+            }
+        } catch (NumberFormatException | NullPointerException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Cliente inválido.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
+    }
+
+
 }
