@@ -118,7 +118,6 @@
             <div class="account-body">
                 <div class="account-tabs">
                     <label for="acc-reservas">Minhas reservas</label>
-                    <label for="acc-pedidos">Meus pedidos</label>
                     <label for="acc-dados">Meus dados</label>
                 </div>
 
