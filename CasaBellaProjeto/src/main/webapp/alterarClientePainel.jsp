@@ -7,13 +7,8 @@
     }
 %>
 <%
-    // PROTEÇÃO DA PÁGINA: ative (tirando os //) quando o ControleLogin passar
-    // a guardar o usuário na sessão. Troque "funcionario" pelo valor que o
-    // ControleLogin grava em "perfil" para a equipe.
-    // if (session.getAttribute("perfil") == null || !"funcionario".equals(session.getAttribute("perfil"))) {
-    //     response.sendRedirect("login.html");
-    //     return;
-    // }
+
+    String base = request.getContextPath();
 
     String nomeLogado = (String) session.getAttribute("nome");
     if (nomeLogado == null) nomeLogado = "Funcionário(a)";
@@ -41,7 +36,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="<%=base%>/main.css" />
 </head>
 <body>
 
@@ -49,16 +44,16 @@
 
     <!-- ============ BARRA LATERAL ============ -->
     <aside class="admin-sidebar">
-        <a href="PainelGerenciamento" class="admin-logo">
+        <a href="<%= base %>/PainelGerenciamento?aba=clientes" class="admin-logo">
             <span class="brand-mark">Casa <em>Bella</em></span>
         </a>
 
         <nav class="admin-nav" aria-label="Navegação do painel">
-            <a href="PainelGerenciamento">Voltar ao painel</a>
+            <a href="<%= base %>/PainelGerenciamento?aba=clientes">Voltar ao painel</a>
         </nav>
 
         <div class="admin-logout">
-            <a href="login.html">Sair</a>
+            <a href="<%= base%>/login.html">Sair</a>
         </div>
     </aside>
 
@@ -88,7 +83,7 @@
                     <p role="alert"><%= esc(erro) %></p>
                     <% } %>
 
-                    <form class="auth-form" action="ControleCliente" method="post">
+                    <form class="auth-form" action="<%= base %>/ControleCliente" method="post">
                         <input type="hidden" name="origem" value="atualizar" />
                         <input type="hidden" name="id_cliente" value="<%= esc(cliente[0]) %>" />
 
@@ -114,6 +109,30 @@
 
                         <button type="submit" class="btn btn-primary btn-block">Salvar alterações</button>
                     </form>
+                    <input type="checkbox" id="abrir-excluir" class="delete-toggle" aria-controls="card-excluir" />
+
+                    <label for="abrir-excluir" class="btn btn-danger btn-block" style="margin-top:1rem;">Excluir cliente</label>
+
+                    <div class="edit-card is-danger delete-card" id="card-excluir">
+                        <h2>Excluir cliente</h2>
+                        <p>Esta ação não pode ser desfeita. O cliente <strong><%= esc(cliente[1]) %></strong> será removido do sistema.</p>
+
+                        <form class="auth-form" action="<%= base %>/ControleCliente" method="post">
+                            <input type="hidden" name="origem" value="excluirPainel" />
+                            <input type="hidden" name="id_cliente" value="<%= esc(cliente[0]) %>" />
+
+                            <label class="field-check">
+                                <input type="checkbox" required />
+                                Entendo que não poderei desfazer
+                            </label>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-danger">Confirmar exclusão</button>
+                            </div>
+                        </form>
+                    </div>
+
+
                 </div>
             </section>
         </div>
