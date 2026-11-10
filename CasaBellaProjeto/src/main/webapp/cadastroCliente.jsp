@@ -1,5 +1,3 @@
-//ATENÇÃO, ESSE CADASTRO É FEITO POR ADMINS PELO GERENCIAMENTO
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%!
     // Escapa caracteres especiais antes de imprimir um texto dentro do HTML
@@ -9,16 +7,6 @@
     }
 %>
 <%
-    // PROTEÇÃO DA PÁGINA: só o pessoal técnico acessa.
-    // Ative (tirando os //) quando o ControleLogin passar a guardar
-    // "nome" e "cargo" na sessão com session.setAttribute(...).
-    // Troque "Técnico" pelo texto exato que está na coluna cargo do banco.
-    // String cargoLogado = (String) session.getAttribute("cargo");
-    // if (session.getAttribute("nome") == null || !"Técnico".equals(cargoLogado)) {
-    //     response.sendRedirect("login.html");
-    //     return;
-    // }
-
     String id_usuario = request.getParameter("usuario");
     String nome = (String) session.getAttribute("nome");
     if (nome == null) nome = "Funcionário(a)";
@@ -52,7 +40,7 @@
         </a>
 
         <nav class="admin-nav" aria-label="Navegação do painel">
-            <a href="gerenciamento.jsp">Voltar ao painel</a>
+            <a href="PainelGerenciamento?aba=clientes">Voltar ao painel</a>
         </nav>
 
         <div class="admin-logout">
@@ -72,7 +60,7 @@
         </div>
 
         <div class="admin-content">
-            <section class="admin-panel" style="display:block" aria-label="Cadastro de funcionário">
+            <section class="admin-panel" style="display:block" aria-label="Cadastro de Clientes">
                 <div class="admin-panel-header">
                     <div>
                         <h1>Novo Cliente</h1>
