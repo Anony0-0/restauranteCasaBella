@@ -31,11 +31,14 @@ public class ControleReserva extends HttpServlet {
 
         String origem = request.getParameter("origem");
 
-        if ("cadastrarPainel".equalsIgnoreCase(request.getParameter("origem"))) {
+        if ("cadastrarPainel".equalsIgnoreCase(origem)) {
             cadastrarPeloPainel(request, response);
             return;
         } else if ("confirmarChegada".equalsIgnoreCase(origem) || "cancelar".equalsIgnoreCase(origem)) {
             statusPeloPainel(request, response, origem);
+            return;
+        } else if ("atualizarPainel".equalsIgnoreCase(origem)) { // NOVO
+            atualizarPeloPainel(request, response);
             return;
         }
 
@@ -72,6 +75,7 @@ public class ControleReserva extends HttpServlet {
             erro.printStackTrace();
             mensagem = "Não foi possível concluir a reserva agora. Tente novamente em instantes.";
         }
+
         definirBotoes(request, mensagem.toLowerCase().contains("sucesso"));
         request.setAttribute("mens", mensagem);
         request.getRequestDispatcher("mensagens.jsp").forward(request, response);
@@ -93,6 +97,7 @@ public class ControleReserva extends HttpServlet {
         }
     }
 
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -100,6 +105,8 @@ public class ControleReserva extends HttpServlet {
 
         if ("listarMinhas".equalsIgnoreCase(origem)) {
             listarMinhasReservas(request, response);
+        } else if ("editar".equalsIgnoreCase(origem)) { // NOVO
+            abrirEdicaoPeloPainel(request, response);
         } else {
             response.sendRedirect("reservas.jsp");
         }
@@ -174,6 +181,101 @@ public class ControleReserva extends HttpServlet {
         request.getRequestDispatcher("/gerenciamentoAdmins/cadastroReserva.jsp").forward(request, response);
     }
 
+    // NOVO: abre o formulário de edição da reserva
+    private void abrirEdicaoPeloPainel(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ehFuncionario(request)) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id").trim());
+            String[] reserva = new ReservasDao().buscarParaEdicao(id);
+
+            if (reserva == null) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Reserva não encontrada.");
+                return;
+            }
+            String status = reserva[5];
+            if (!"pendente".equalsIgnoreCase(status) && !"confirmada".equalsIgnoreCase(status)) {
+                request.getSession().setAttribute("aviso", "Só reservas pendentes ou confirmadas podem ser editadas.");
+                response.sendRedirect("PainelGerenciamento?aba=reservas");
+                return;
+            }
+            request.setAttribute("reserva", reserva);
+            request.getRequestDispatcher("/gerenciamentoAdmins/alterarReservas.jsp").forward(request, response);
+
+        } catch (NumberFormatException | NullPointerException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Reserva inválida.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
+    }
+
+    // NOVO: salva a edição da reserva
+    private void atualizarPeloPainel(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ehFuncionario(request)) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id_reserva").trim());
+            LocalDate data = LocalDate.parse(request.getParameter("data"));
+            LocalTime hora = LocalTime.parse(request.getParameter("hora"));
+            int pessoas = Integer.parseInt(request.getParameter("pessoas"));
+            LocalDateTime horario = LocalDateTime.of(data, hora);
+
+            ReservasDao dao = new ReservasDao();
+            String[] atual = dao.buscarParaEdicao(id);
+            if (atual == null) {
+                request.getSession().setAttribute("aviso", "Reserva não encontrada.");
+                response.sendRedirect("PainelGerenciamento?aba=reservas");
+                return;
+            }
+
+            // Só exige horário futuro se a data/hora foram mudadas
+            boolean mudouHorario = !(data.toString().equals(atual[2])
+                    && hora.equals(LocalTime.parse(atual[3])));
+            String erro = validar(horario, pessoas, mudouHorario);
+
+            if (erro == null) {
+                String status = atual[5];
+
+                if (!"pendente".equalsIgnoreCase(status) && !"confirmada".equalsIgnoreCase(status)) {
+                    erro = "Só reservas pendentes ou confirmadas podem ser editadas.";
+                } else if (dao.reservaTemPedido(id)) {
+                    erro = "Esta reserva já tem pedido e não pode ser alterada.";
+                } else {
+                    int mesa = dao.escolherMesa(id, pessoas, Timestamp.valueOf(horario), dao.mesaDaReserva(id));
+
+                    if (mesa == 0) {
+                        erro = "Não há mesa disponível para esse horário e quantidade de pessoas.";
+                    } else {
+                        dao.atualizarReserva(id, Timestamp.valueOf(horario), pessoas, mesa);
+                        request.getSession().setAttribute("aviso", "Reserva atualizada com sucesso.");
+                        response.sendRedirect("PainelGerenciamento?aba=reservas");
+                        return;
+                    }
+                }
+            }
+
+            // Com erro, volta para o formulário (os campos continuam como foram digitados)
+            request.setAttribute("reserva", atual);
+            request.setAttribute("erro", erro);
+            request.getRequestDispatcher("/gerenciamentoAdmins/alterarReservas.jsp").forward(request, response);
+
+        } catch (DateTimeParseException | NumberFormatException | NullPointerException e) {
+            request.getSession().setAttribute("aviso", "Dados da reserva inválidos.");
+            response.sendRedirect("PainelGerenciamento?aba=reservas");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("aviso", "Não foi possível atualizar a reserva agora.");
+            response.sendRedirect("PainelGerenciamento?aba=reservas");
+        }
+    }
+
     // Só a equipe cadastra reservas pelo painel
     private boolean ehFuncionario(HttpServletRequest request) {
         HttpSession sessao = request.getSession(false);
@@ -181,15 +283,17 @@ public class ControleReserva extends HttpServlet {
         return true; // TEMPORÁRIO: troque pela linha de cima quando o login da equipe gravar o perfil
     }
 
-
     private String validar(LocalDateTime horario, int pessoas) {
+        return validar(horario, pessoas, true);
+    }
+
+    private String validar(LocalDateTime horario, int pessoas, boolean exigirFuturo) {
         if (pessoas < 1 || pessoas > MAX_PESSOAS) {
             return "Para grupos acima de " + MAX_PESSOAS + " pessoas, ligue para (11) 3040-5060.";
         }
-        if (!horario.isAfter(LocalDateTime.now())) {
+        if (exigirFuturo && !horario.isAfter(LocalDateTime.now())) {
             return "Escolha uma data e um horário futuros.";
         }
-
         DayOfWeek dia = horario.getDayOfWeek();
         if (dia == DayOfWeek.MONDAY) {
             return "Não abrimos às segundas-feiras.";
@@ -242,6 +346,4 @@ public class ControleReserva extends HttpServlet {
         request.getSession().setAttribute("aviso", aviso);
         response.sendRedirect("PainelGerenciamento?aba=reservas");
     }
-
-
 }
