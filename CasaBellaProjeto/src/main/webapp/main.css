@@ -973,6 +973,8 @@ section {
 /* Destaca o item do menu correspondente à aba ativa */
 #tab-pedidos:checked ~ .admin-shell .admin-nav label[for="tab-pedidos"],
 #tab-clientes:checked ~ .admin-shell .admin-nav label[for="tab-clientes"],
+#tab-reservas:checked ~ .admin-shell .admin-nav label[for="tab-reservas"],
+#tab-produtos:checked ~ .admin-shell .admin-nav label[for="tab-produtos"],
 #tab-funcionarios:checked ~ .admin-shell .admin-nav label[for="tab-funcionarios"] {
     color: var(--color-gold-bright);
     background: var(--color-bg-elevated-2);
@@ -1047,8 +1049,11 @@ section {
     display: none;
 }
 
+/* Mostra só o painel da aba ativa */
 #tab-pedidos:checked ~ .admin-shell #panel-pedidos,
 #tab-clientes:checked ~ .admin-shell #panel-clientes,
+#tab-reservas:checked ~ .admin-shell #panel-reservas,
+#tab-produtos:checked ~ .admin-shell #panel-produtos,
 #tab-funcionarios:checked ~ .admin-shell #panel-funcionarios {
     display: block;
 }
@@ -1621,7 +1626,7 @@ section {
 }
 
 /* =========================================================
-   Editar dados do cliente (editarDados.jsp)
+   Editar dados do cliente (editarCliente.jsp)
    ========================================================= */
 .edit-wrap {
     max-width: 40rem;
