@@ -388,6 +388,10 @@
                                     <% } %>
 
                                     <% if ("pendente".equalsIgnoreCase(statusReserva) || "confirmada".equalsIgnoreCase(statusReserva)) { %>
+                                    <a href="<%= request.getContextPath() %>/ControleReserva?origem=editar&id=<%= idReservaLinha %>" class="chip-btn">Editar</a>
+                                    <% } %>
+
+                                    <% if ("pendente".equalsIgnoreCase(statusReserva) || "confirmada".equalsIgnoreCase(statusReserva)) { %>
                                     <form action="ControleReserva" method="post" style="display:inline"
                                           onsubmit="return confirm('Cancelar esta reserva?');">
                                         <input type="hidden" name="origem" value="cancelar" />
