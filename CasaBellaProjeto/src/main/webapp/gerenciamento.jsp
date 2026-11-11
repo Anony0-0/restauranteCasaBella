@@ -88,7 +88,6 @@
 <body>
 
 <!--
-  Painel interno da equipe (funcionários), separado do site do cliente.
   As "abas" (Pedidos / Clientes / Reservas / Produtos / Funcionários) trocam
   de conteúdo só com CSS, usando radio buttons escondidos. Só uma aba pode
   estar ativa por vez.
@@ -96,11 +95,11 @@
   Os dados de todas as tabelas vêm do servlet via request.setAttribute:
   "pedidos", "clientes", "reservas", "produtos" e "funcionarios".
 -->
-<input type="radio" name="admin-tab" id="tab-pedidos" class="admin-tab-radio" <%= "pedidos".equals(aba) ? "checked" : "" %> />
-<input type="radio" name="admin-tab" id="tab-clientes" class="admin-tab-radio" <%= "clientes".equals(aba) ? "checked" : "" %> />
-<input type="radio" name="admin-tab" id="tab-reservas" class="admin-tab-radio" <%= "reservas".equals(aba) ? "checked" : "" %> />
-<input type="radio" name="admin-tab" id="tab-produtos" class="admin-tab-radio" <%= "produtos".equals(aba) ? "checked" : "" %> />
-<input type="radio" name="admin-tab" id="tab-funcionarios" class="admin-tab-radio" <%= "funcionarios".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-pedidos" class="admin-tab-radio" autocomplete="off" <%= "pedidos".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-clientes" class="admin-tab-radio" autocomplete="off" <%= "clientes".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-reservas" class="admin-tab-radio" autocomplete="off" <%= "reservas".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-produtos" class="admin-tab-radio" autocomplete="off" <%= "produtos".equals(aba) ? "checked" : "" %> />
+<input type="radio" name="admin-tab" id="tab-funcionarios" class="admin-tab-radio" autocomplete="off" <%= "funcionarios".equals(aba) ? "checked" : "" %> />
 
 <div class="admin-shell">
 
