@@ -97,6 +97,13 @@ public class ProdutosDao {
     }
 
 
+    public int excluirPorId(int id) throws SQLException, ClassNotFoundException {
+        conectar();
 
+        st = conectado.prepareStatement("DELETE FROM produtos where id_produto = ?");
+        st.setInt(1,id);
+        return st.executeUpdate();
+
+    }
 }
 
