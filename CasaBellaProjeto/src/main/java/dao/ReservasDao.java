@@ -60,36 +60,34 @@ public class ReservasDao {
     // Confirma a chegada do cliente. Retorna 1 se confirmou, 0 se a reserva não estava pendente.
     public int confirmarChegada(int idReserva) throws SQLException, ClassNotFoundException {
         conectar();
-        try {
-            st = conectado.prepareStatement(
-                    "UPDATE reservas SET status = 'Confirmada' WHERE id_reserva = ? AND status = 'Pendente'");
-            st.setInt(1, idReserva);
-            return st.executeUpdate();
-        } finally {
-            conectado.close();
-        }
+        st = conectado.prepareStatement(
+                "UPDATE reservas SET status = 'Confirmada' WHERE id_reserva = ? AND status = 'Pendente'");
+        st.setInt(1, idReserva);
+        int linhas = st.executeUpdate();
+        conectado.close();
+        return linhas;
     }
+
 
     // Pendente/Confirmada -> Cancelada. Retorna 1 se cancelou, 0 se não pode cancelar,
     // -1 se já existe pedido ligado à reserva.
     public int cancelar(int idReserva) throws SQLException, ClassNotFoundException {
-        Connection con = ConexaoBD.conectar();
-        try {
-            try (PreparedStatement ps = con.prepareStatement(
-                    "SELECT 1 FROM pedidos WHERE id_reserva = ?")) {
-                ps.setInt(1, idReserva);
-                try (ResultSet r = ps.executeQuery()) {
-                    if (r.next()) return -1;
-                }
-            }
-            try (PreparedStatement ps = con.prepareStatement(
-                    "UPDATE reservas SET status = 'Cancelada' WHERE id_reserva = ? AND status IN ('Pendente','Confirmada')")) {
-                ps.setInt(1, idReserva);
-                return ps.executeUpdate();
-            }
-        } finally {
-            con.close();
+        conectar();
+        st = conectado.prepareStatement("SELECT 1 FROM pedidos WHERE id_reserva = ?");
+        st.setInt(1, idReserva);
+        rs = st.executeQuery();
+
+        if (rs.next()) {
+            conectado.close();
+            return -1;
         }
+
+        st = conectado.prepareStatement(
+                "UPDATE reservas SET status = 'Cancelada' WHERE id_reserva = ? AND status IN ('Pendente','Confirmada')");
+        st.setInt(1, idReserva);
+        int linhas = st.executeUpdate();
+        conectado.close();
+        return linhas;
     }
 
 
@@ -127,4 +125,94 @@ public class ReservasDao {
         rs = st.executeQuery();
         return rs;
     }
+
+    // Dados para o formulário: {id, cliente, data, hora, pessoas, status}. Retorna null se não existir.
+    public String[] buscarParaEdicao(int idReserva) throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement(
+                "SELECT r.id_reserva, c.nome AS cliente, r.horario, r.qtd_pessoas, r.status " +
+                        "FROM reservas r LEFT JOIN clientes c ON c.id_cliente = r.id_cliente " +
+                        "WHERE r.id_reserva = ?");
+        st.setInt(1, idReserva);
+        rs = st.executeQuery();
+
+        String[] dados = null;
+        if (rs.next()) {
+            Timestamp h = rs.getTimestamp("horario");
+            String cliente = rs.getString("cliente");
+            dados = new String[]{
+                    String.valueOf(rs.getInt("id_reserva")),
+                    cliente == null ? "" : cliente,
+                    h.toLocalDateTime().toLocalDate().toString(),   // 2026-11-15
+                    h.toLocalDateTime().toLocalTime().toString(),   // 19:30
+                    String.valueOf(rs.getInt("qtd_pessoas")),
+                    rs.getString("status")
+            };
+        }
+        conectado.close();
+        return dados;
+    }
+
+    // Mesa atual da reserva (0 se não tiver)
+    public int mesaDaReserva(int idReserva) throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement("SELECT id_mesa FROM reservas WHERE id_reserva = ?");
+        st.setInt(1, idReserva);
+        rs = st.executeQuery();
+        int mesa = rs.next() ? rs.getInt("id_mesa") : 0;
+        conectado.close();
+        return mesa;
+    }
+
+    // A reserva já tem pedido?
+    public boolean reservaTemPedido(int idReserva) throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement("SELECT 1 FROM pedidos WHERE id_reserva = ?");
+        st.setInt(1, idReserva);
+        rs = st.executeQuery();
+        boolean tem = rs.next();
+        conectado.close();
+        return tem;
+    }
+
+    // Mesa com capacidade e sem conflito (ignorando esta própria reserva).
+    // A mesa atual vem primeiro, se ainda servir. Retorna 0 se não houver nenhuma.
+    public int escolherMesa(int idReserva, int pessoas, Timestamp horario, int mesaAtual)
+            throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement(
+                "SELECT id_mesa FROM mesas WHERE capacidade >= ? AND id_mesa NOT IN (" +
+                        "  SELECT id_mesa FROM reservas WHERE id_mesa IS NOT NULL AND id_reserva <> ? " +
+                        "   AND status NOT IN ('Cancelada','Concluida') " +
+                        "   AND horario > DATE_SUB(?, INTERVAL 2 HOUR) " +
+                        "   AND horario < DATE_ADD(?, INTERVAL 2 HOUR)" +
+                        ") ORDER BY (id_mesa = ?) DESC, capacidade, id_mesa LIMIT 1");
+        st.setInt(1, pessoas);
+        st.setInt(2, idReserva);
+        st.setTimestamp(3, horario);
+        st.setTimestamp(4, horario);
+        st.setInt(5, mesaAtual);
+        rs = st.executeQuery();
+        int mesa = rs.next() ? rs.getInt("id_mesa") : 0;
+        conectado.close();
+        return mesa;
+    }
+
+    // Salva a alteração
+    public int atualizarReserva(int idReserva, Timestamp horario, int pessoas, int mesa)
+            throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement(
+                "UPDATE reservas SET horario = ?, qtd_pessoas = ?, id_mesa = ? WHERE id_reserva = ?");
+        st.setTimestamp(1, horario);
+        st.setInt(2, pessoas);
+        st.setInt(3, mesa);
+        st.setInt(4, idReserva);
+        int linhas = st.executeUpdate();
+        conectado.close();
+        return linhas;
+    }
+
+
+
 }
