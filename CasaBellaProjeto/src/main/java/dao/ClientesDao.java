@@ -91,8 +91,30 @@ public class ClientesDao {
         }
     }
 
+    // Retorna 1 se excluiu, 0 se o cliente não existe, -1 se ele tem reservas ligadas.
+    public int excluirPorId(int id) throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+        try {
+            try (PreparedStatement ps = con.prepareStatement(
+                    "SELECT 1 FROM reservas WHERE id_cliente = ?")) {
+                ps.setInt(1, id);
+                try (ResultSet r = ps.executeQuery()) {
+                    if (r.next()) return -1;
+                }
+            }
+            try (PreparedStatement ps = con.prepareStatement(
+                    "DELETE FROM clientes WHERE id_cliente = ?")) {
+                ps.setInt(1, id);
+                return ps.executeUpdate();
+            }
+        } finally {
+            con.close();
+        }
+    }
 
-    //Excluir Clientes
+
+
+    //Excluir Clientes area cliente
     public int excluirCliente(String email) throws SQLException, ClassNotFoundException {
         conectar();
         //Monta o comando delete a ser executado
