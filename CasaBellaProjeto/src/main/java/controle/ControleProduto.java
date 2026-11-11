@@ -105,7 +105,10 @@ public class ControleProduto extends HttpServlet {
         atualizar(request, response);
         return;
 
-    } else {
+    } else if("excluirPainel".equalsIgnoreCase(origem)){
+            excluir(request,response);
+            return;
+        } else {
         mensagem = "Operação inválida.";
     }
 
@@ -188,9 +191,26 @@ public class ControleProduto extends HttpServlet {
     }
 
 
-    private void excluirPeloPainel(HttpServletRequest request, HttpServletResponse response)
+    private void excluir(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        try {
+            int id = Integer.parseInt(request.getParameter("id_produto"));
+            ProdutosDao dao = new ProdutosDao();
+            int resultado = dao.excluirPorId(id);
+
+            if (resultado == 1) {
+                request.getSession().setAttribute("aviso", "Produto excluído com sucesso.");
+                response.sendRedirect("PainelGerenciamento?aba=produtos");
+            } else {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Produto não encontrado.");
+            }
+        } catch (NumberFormatException | NullPointerException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Produto inválido.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
     }
 
 }
