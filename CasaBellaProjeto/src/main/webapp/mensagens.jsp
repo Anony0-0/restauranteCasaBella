@@ -18,6 +18,35 @@
             .replace(">", "&gt;")
             .replace("\"", "&quot;");
 %>
+<%!
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+%>
+<%
+    // Textos e botões que o servlet pode personalizar (todos opcionais)
+    String lead = (String) request.getAttribute("lead");
+    String btn1Url = (String) request.getAttribute("btn1Url");
+    String btn1Texto = (String) request.getAttribute("btn1Texto");
+    String btn2Url = (String) request.getAttribute("btn2Url");
+    String btn2Texto = (String) request.getAttribute("btn2Texto");
+
+    // Se o servlet não definiu nada, mantém o comportamento antigo
+    if (lead == null) {
+        lead = sucesso
+                ? "Sua solicitação foi concluída. Agora você já pode entrar na sua conta."
+                : "Não foi possível concluir. Revise os dados informados e tente novamente.";
+    }
+    if (btn1Url == null) {
+        btn1Url = "login.html";
+        btn1Texto = sucesso ? "Ir para o login" : "Voltar ao login";
+    }
+    if (btn2Url == null) {
+        btn2Url = sucesso ? "index.html" : "cadastro.html";
+        btn2Texto = sucesso ? "Voltar ao início" : "Criar uma conta";
+    }
+%>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -94,20 +123,12 @@
 
                 <h1 class="result-title"><%= mensagemSegura %></h1>
 
-                <p class="auth-lead">
-                    <%= sucesso
-                            ? "Sua solicitação foi concluída. Agora você já pode entrar na sua conta."
-                            : "Não foi possível concluir. Revise os dados informados e tente novamente." %>
-                </p>
+               <p class="auth-lead"><%= esc(lead) %></p>
 
-                <div class="result-actions">
-                    <a href="login.html" class="btn btn-primary"><%= sucesso ? "Ir para o login" : "Voltar ao login" %></a>
-                    <% if (sucesso) { %>
-                    <a href="index.html" class="link-gold">Voltar ao início</a>
-                    <% } else { %>
-                    <a href="cadastro.html" class="link-gold">Criar uma conta</a>
-                    <% } %>
-                </div>
+               <div class="result-actions">
+                   <a href="<%= esc(btn1Url) %>" class="btn btn-primary"><%= esc(btn1Texto) %></a>
+                   <a href="<%= esc(btn2Url) %>" class="link-gold"><%= esc(btn2Texto) %></a>
+               </div>
             </div>
         </div>
     </section>
