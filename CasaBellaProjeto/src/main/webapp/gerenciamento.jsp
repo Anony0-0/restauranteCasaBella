@@ -456,7 +456,7 @@
                             <td><span class="status-pill <%= statusClass(dispProduto) %>"><%= rotuloDisponibilidade(dispProduto) %></span></td>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="#">Editar</a>
+                                    <a href="<%= request.getContextPath() %>/ControleProduto?origem=editar&id_produto=<%= produtos.getInt("id_produto") %>">Editar</a>
                                 </div>
                             </td>
                         </tr>
