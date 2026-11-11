@@ -6,6 +6,13 @@
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
+    // Escolhe a classe CSS da etiqueta de status
+    private String classeStatus(String status) {
+        if ("Confirmada".equalsIgnoreCase(status)) return "is-confirmada";
+        if ("Realizada".equalsIgnoreCase(status))  return "is-realizada";
+        if ("Cancelada".equalsIgnoreCase(status))  return "is-cancelada";
+        return "is-pendente";
+    }
 %>
 <%
     String nome = (String) request.getAttribute("nome");
@@ -22,6 +29,27 @@
 
     Integer idClienteLogado = (Integer) session.getAttribute("id_cliente");
     String primeiroNome = nome.trim().split("\\s+")[0];
+
+    ResultSet rsReservas = (ResultSet) request.getAttribute("reservas");
+    List<Object[]> lista = new ArrayList<>();
+    Object[] proxima = null;
+    long agora = System.currentTimeMillis();
+
+    while (rsReservas != null && rsReservas.next()) {
+        Timestamp h = rsReservas.getTimestamp("horario");
+        Object[] r = {
+            h,
+            rsReservas.getInt("id_mesa"),
+            rsReservas.getString("status")
+        };
+        lista.add(r);
+
+        String stat = (String) r[3];
+        boolean ativa = "Pendente".equalsIgnoreCase(stat) || "Confirmada".equalsIgnoreCase(stat);
+        if (ativa && h.getTime() >= agora) {
+            if (proxima == null || h.before((Timestamp) proxima[0])) proxima = r;
+        }
+    }
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -96,24 +124,39 @@
             </div>
 
             <!-- Destaque: próxima reserva -->
+            <% if (proxima != null) {
+                java.time.LocalDateTime dt = ((Timestamp) proxima[0]).toLocalDateTime();
+                String[] meses = {"jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"};
+                String[] dias  = {"Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"};
+                String statusProx = (String) proxima[3];
+            %>
             <div class="next-reservation">
                 <div class="next-reservation-date">
-                    <span class="next-reservation-day">31</span>
-                    <span class="next-reservation-month">out</span>
+                    <span class="next-reservation-day"><%= dt.getDayOfMonth() %></span>
+                    <span class="next-reservation-month"><%= meses[dt.getMonthValue() - 1] %></span>
                 </div>
 
                 <div>
                     <span class="eyebrow-mark">Sua próxima reserva</span>
-                    <p class="next-reservation-title">Sábado, às 20h00</p>
-                    <p class="next-reservation-meta">4 pessoas, salão principal</p>
+                    <p class="next-reservation-title"><%= dias[dt.getDayOfWeek().getValue() - 1] %>, às <%= String.format("%02dh%02d", dt.getHour(), dt.getMinute()) %></p>
+                    <p class="next-reservation-meta"><%= proxima[1] %> pessoas, mesa <%= proxima[2] %></p>
                 </div>
 
                 <div class="next-reservation-actions">
-                    <span class="status-pill is-confirmada">Confirmada</span>
-                    <a href="#" class="chip-btn">Ver detalhes</a>
-                    <a href="#" class="chip-btn">Cancelar</a>
+                    <span class="status-pill <%= classeStatus(statusProx) %>"><%= esc(statusProx) %></span>
                 </div>
             </div>
+            <% } else { %>
+            <div class="next-reservation">
+                <div>
+                    <span class="eyebrow-mark">Sua próxima reserva</span>
+                    <p class="next-reservation-title">Você não tem reservas futuras</p>
+                </div>
+                <div class="next-reservation-actions">
+                    <a href="reservas.jsp" class="btn btn-primary">Fazer reserva</a>
+                </div>
+            </div>
+            <% } %>
 
             <div class="account-body">
                 <div class="account-tabs">
@@ -134,42 +177,31 @@
                                 <th></th>
                             </tr>
                             </thead>
-                            <tbody>
-                        <%
-                            ResultSet rsReservas = (ResultSet) request.getAttribute("reservas");
-                            SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                            boolean temReservas = false;
+                        <tbody>
+                       <%
+                           SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
-                            while (rsReservas != null && rsReservas.next()) {
-                                temReservas = true;
-                                Timestamp horarioReserva = rsReservas.getTimestamp("horario");
-                                int qtdPessoas = rsReservas.getInt("qtd_pessoas");
-                                int idMesa = rsReservas.getInt("id_mesa");
-                                String statusReserva = rsReservas.getString("status");
-
-                                String classeStatus = "is-pendente";
-                                if ("Confirmada".equalsIgnoreCase(statusReserva)) classeStatus = "is-confirmada";
-                                else if ("Realizada".equalsIgnoreCase(statusReserva)) classeStatus = "is-realizada";
-                                else if ("Cancelada".equalsIgnoreCase(statusReserva)) classeStatus = "is-cancelada";
-                        %>
-                        <tr>
-                            <td><%= esc(formatoData.format(horarioReserva)) %></td>
-                            <td><%= qtdPessoas %></td>
-                            <td>Mesa <%= idMesa %></td>
-                            <td><span class="status-pill <%= classeStatus %>"><%= esc(statusReserva) %></span></td>
-                            <td><a href="#" class="chip-btn">Ver</a></td>
-                        </tr>
-                        <%
-                            }
-                            if (!temReservas) {
-                        %>
-                        <tr>
-                            <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registradas.</td>
-                        </tr>
-                        <%
-                            }
-                        %>
-                        </tbody>
+                           for (Object[] r : lista) {
+                               String statusReserva = (String) r[3];
+                       %>
+                       <tr>
+                           <td><%= esc(formatoData.format((Timestamp) r[0])) %></td>
+                           <td><%= r[1] %></td>
+                           <td>Mesa <%= r[2] %></td>
+                           <td><span class="status-pill <%= classeStatus(statusReserva) %>"><%= esc(statusReserva) %></span></td>
+                           <td><a href="#" class="chip-btn">Ver</a></td>
+                       </tr>
+                       <%
+                           }
+                           if (lista.isEmpty()) {
+                       %>
+                       <tr>
+                           <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registradas.</td>
+                       </tr>
+                       <%
+                           }
+                       %>
+                       </tbody>
                         </table>
                     </div>
                 </div>
