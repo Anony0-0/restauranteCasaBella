@@ -142,11 +142,13 @@
 
                     <div class="edit-card is-danger delete-card" id="card-excluir">
                         <h2>Excluir Produto</h2>
-                        <p>Esta ação não pode ser desfeita. O produto <strong><%= esc(produto[1]) %></strong> será removido do sistema.</p>
+                        <p>Esta ação não pode ser desfeita. O produto <strong><%= esc(produto[0]) %></strong> será removido do sistema.</p>
 
                         <form class="auth-form" action="<%= base %>/ControleProduto" method="post">
+
                             <input type="hidden" name="origem" value="excluirPainel" />
-                            <input type="hidden" name="id_cliente" value="<%= produto[1]) %>" />
+
+                            <input type="hidden" name="id_produto" value="<%= esc(produto[0]) %>" />
 
                             <label class="field-check">
                                 <input type="checkbox" required />
@@ -154,8 +156,11 @@
                             </label>
 
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-danger">Confirmar exclusão</button>
+                                <button type="submit" class="btn btn-danger">
+                                    Confirmar exclusão
+                                </button>
                             </div>
+
                         </form>
                     </div>
 
