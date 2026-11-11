@@ -7,17 +7,8 @@
     }
 %>
 <%
-    // PROTEÇÃO DA PÁGINA: só o pessoal técnico acessa.
-    // Ative (tirando os //) quando o ControleLogin passar a guardar
-    // "nome" e "cargo" na sessão com session.setAttribute(...).
-    // Troque "Técnico" pelo texto exato que está na coluna cargo do banco.
-    // String cargoLogado = (String) session.getAttribute("cargo");
-    // if (session.getAttribute("nome") == null || !"Técnico".equals(cargoLogado)) {
-    //     response.sendRedirect("login.html");
-    //     return;
-    // }
 
-    String id_func = request.getParameter("usuario");
+    String id_func = request.getParameter("id_func");
     String nome = (String) session.getAttribute("nome");
     if (nome == null) nome = "Funcionário(a)";
     String cargo = (String) session.getAttribute("cargo");
@@ -88,13 +79,18 @@
                         <input type="hidden" name="origem" value="cadastrar" />
 
                         <div class="field">
-                            <label for="id_func">Usuário</label>
-                            <input type="text" id="id_func" name="id_func" placeholder="Usuário para login" autocomplete="off" minlength="6" required />
+                            <label for="id_func">Nº ID Funcionário:</label>
+                            <input type="text" id="id_func" name="id_func" placeholder="Númeração de Identificação" autocomplete="off" required />
                         </div>
 
                         <div class="field">
                             <label for="nome">Nome completo</label>
                             <input type="text" id="nome" name="nome" placeholder="Digite o nome completo" autocomplete="off" required />
+                        </div>
+
+                        <div class="field">
+                            <label for="usermobi">Usuário para Mobile</label>
+                            <input type="text" id="usermobi" name="usermobi" placeholder="Deixar vazio se não for ter acesso" autocomplete="off" />
                         </div>
 
                         <div class="field">
