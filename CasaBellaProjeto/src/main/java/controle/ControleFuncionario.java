@@ -57,7 +57,7 @@ public class ControleFuncionario extends HttpServlet {
     }
 
 
-    //CADASTRAR FUNCINARIOS
+    //CADASTRAR FUNCIONARIOS
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException{
 
@@ -68,7 +68,7 @@ public class ControleFuncionario extends HttpServlet {
         String mensagem;
 
         if ("cadastrar".equalsIgnoreCase(origem)) {
-            String id_func= request.getParameter("id_func");
+            Integer id_func = Integer.parseInt(request.getParameter("id_func"));
             String nome = request.getParameter("nome");
             String usermobi = request.getParameter("usermobi");
             String email = request.getParameter("email");
