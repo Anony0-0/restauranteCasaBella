@@ -72,9 +72,25 @@ public class ControleReserva extends HttpServlet {
             erro.printStackTrace();
             mensagem = "Não foi possível concluir a reserva agora. Tente novamente em instantes.";
         }
-
+        definirBotoes(request, mensagem.toLowerCase().contains("sucesso"));
         request.setAttribute("mens", mensagem);
         request.getRequestDispatcher("mensagens.jsp").forward(request, response);
+    }
+
+    // Botões da tela de mensagem para o fluxo de reserva do cliente
+    private void definirBotoes(HttpServletRequest request, boolean sucesso) {
+        if (sucesso) {
+            request.setAttribute("lead", "Sua reserva foi enviada e fica pendente até a confirmação da equipe.");
+            request.setAttribute("btn1Url", "ControleReserva?origem=listarMinhas");
+            request.setAttribute("btn1Texto", "Ver minhas reservas");
+            request.setAttribute("btn2Url", "index.html");
+            request.setAttribute("btn2Texto", "Voltar ao início");
+        } else {
+            request.setAttribute("btn1Url", "reservas.jsp");
+            request.setAttribute("btn1Texto", "Tentar novamente");
+            request.setAttribute("btn2Url", "ControleReserva?origem=listarMinhas");
+            request.setAttribute("btn2Texto", "Voltar à minha área");
+        }
     }
 
     @Override
