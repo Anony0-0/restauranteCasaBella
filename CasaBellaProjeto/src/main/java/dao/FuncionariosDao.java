@@ -21,10 +21,10 @@ public class FuncionariosDao {
         conectado = ConexaoBD.conectar();
     }
 
-    public int cadastrarFuncionarios(String id_func, String nome, String usermobi, String email, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
+    public int cadastrarFuncionarios(Integer id_func, String nome, String usermobi, String email, String senha, String cargo, String admissao) throws ClassNotFoundException, SQLException {
         conectar();
         st = conectado.prepareStatement("insert into funcionarios values(?,?,?,?,?,?,?)");
-        st.setString(1,id_func);
+        st.setInt(1,id_func);
         st.setString(2, nome);
         st.setString(3, usermobi);
         st.setString(4, email);
