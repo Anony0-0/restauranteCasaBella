@@ -15,7 +15,6 @@ import java.sql.SQLException;
 public class ControleFuncionario extends HttpServlet {
 
     //LISTAR FUNCIONARIOS
-
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
@@ -70,14 +69,15 @@ public class ControleFuncionario extends HttpServlet {
 
         if ("cadastrar".equalsIgnoreCase(origem)) {
             String id_func= request.getParameter("id_func");
-            String email = request.getParameter("email");
             String nome = request.getParameter("nome");
+            String usermobi = request.getParameter("usermobi");
+            String email = request.getParameter("email");
             String senha = request.getParameter("senha");
             String cargo = request.getParameter("cargo");
             String admissao = request.getParameter("admissao");
 
             try {
-                int resultado = new FuncionariosDao().cadastrarFuncionarios(id_func, email, nome, senha, cargo, admissao);
+                int resultado = new FuncionariosDao().cadastrarFuncionarios(id_func, nome, usermobi, email, senha, cargo, admissao);
                 if (resultado == 1) {
                     mensagem = "Funcionário cadastrado com sucesso!";
                 } else {
