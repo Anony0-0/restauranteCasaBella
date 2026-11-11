@@ -6,6 +6,7 @@
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
+
     // Escolhe a classe CSS da etiqueta de status
     private String classeStatus(String status) {
         if ("Confirmada".equalsIgnoreCase(status)) return "is-confirmada";
@@ -30,6 +31,7 @@
     Integer idClienteLogado = (Integer) session.getAttribute("id_cliente");
     String primeiroNome = nome.trim().split("\\s+")[0];
 
+    // Lê as reservas UMA vez e descobre qual é a próxima
     ResultSet rsReservas = (ResultSet) request.getAttribute("reservas");
     List<Object[]> lista = new ArrayList<>();
     Object[] proxima = null;
@@ -39,6 +41,7 @@
         Timestamp h = rsReservas.getTimestamp("horario");
         Object[] r = {
             h,
+            rsReservas.getInt("qtd_pessoas"),
             rsReservas.getInt("id_mesa"),
             rsReservas.getString("status")
         };
@@ -177,35 +180,36 @@
                                 <th></th>
                             </tr>
                             </thead>
-                        <tbody>
-                       <%
-                           SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                            <tbody>
+                            <%
+                                SimpleDateFormat formatoData = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
-                           for (Object[] r : lista) {
-                               String statusReserva = (String) r[3];
-                       %>
-                       <tr>
-                           <td><%= esc(formatoData.format((Timestamp) r[0])) %></td>
-                           <td><%= r[1] %></td>
-                           <td>Mesa <%= r[2] %></td>
-                           <td><span class="status-pill <%= classeStatus(statusReserva) %>"><%= esc(statusReserva) %></span></td>
-                           <td><a href="#" class="chip-btn">Ver</a></td>
-                       </tr>
-                       <%
-                           }
-                           if (lista.isEmpty()) {
-                       %>
-                       <tr>
-                           <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registradas.</td>
-                       </tr>
-                       <%
-                           }
-                       %>
-                       </tbody>
+                                for (Object[] r : lista) {
+                                    String statusReserva = (String) r[3];
+                            %>
+                            <tr>
+                                <td><%= esc(formatoData.format((Timestamp) r[0])) %></td>
+                                <td><%= r[1] %></td>
+                                <td>Mesa <%= r[2] %></td>
+                                <td><span class="status-pill <%= classeStatus(statusReserva) %>"><%= esc(statusReserva) %></span></td>
+                                <td><a href="#" class="chip-btn">Ver</a></td>
+                            </tr>
+                            <%
+                                }
+                                if (lista.isEmpty()) {
+                            %>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--color-cream-muted);">Ainda não tem reservas registradas.</td>
+                            </tr>
+                            <%
+                                }
+                            %>
+                            </tbody>
                         </table>
                     </div>
                 </div>
-                <!-- ========== MEUS DADOS========== -->
+
+                <!-- ========== MEUS DADOS ========== -->
                 <div class="account-panel" id="acc-panel-dados">
                     <dl class="profile-list">
                         <div>
@@ -220,8 +224,6 @@
                             <dt>Telefone</dt>
                             <dd><%= esc(telefone) %></dd>
                         </div>
-                    </dl>
-
                     </dl>
 
                     <input type="checkbox" id="abrir-excluir" class="delete-toggle" aria-controls="card-excluir" />
@@ -252,8 +254,6 @@
                                 <button type="submit" class="btn btn-danger">Confirmar exclusão</button>
                             </div>
                         </form>
-                    </div>
-
                     </div>
                 </div>
             </div>
