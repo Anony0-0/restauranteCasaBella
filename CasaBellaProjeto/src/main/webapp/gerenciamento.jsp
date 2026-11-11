@@ -481,9 +481,10 @@
                     <table class="admin-table">
                         <thead>
                         <tr>
-                            <th>Usuário</th>
+                            <th>Nº ID</th>
                             <th>Nome</th>
                             <th>Cargo</th>
+                            <th>Mobile</th>
                             <th>E-mail</th>
                             <th>Admissão</th>
                             <th></th>
@@ -500,6 +501,7 @@
                             <td><%= esc(funcionarios.getString("id_func")) %></td>
                             <td><%= esc(funcionarios.getString("nome")) %></td>
                             <td><%= esc(funcionarios.getString("cargo")) %></td>
+                            <td><%= esc(funcionarios.getString("usermobi")) %></td>
                             <td><%= esc(funcionarios.getString("email")) %></td>
                             <td><%= esc(funcionarios.getString("admissao")) %></td>
                             <td>
