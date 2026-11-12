@@ -35,12 +35,6 @@
     }
 %>
 <%
-    // PROTEÇÃO DA PÁGINA: ative (tirando os //) quando o ControleLogin passar
-    // a guardar o usuário na sessão. Quem não estiver logado volta para o login.
-    // if (session.getAttribute("nome") == null && request.getAttribute("nome") == null) {
-    //     response.sendRedirect("login.html");
-    //     return;
-    // }
 
     // Dados de quem logou. O ControleLogin envia com request.setAttribute(...)
     // ou guarda na sessão com session.setAttribute(...).
@@ -144,6 +138,11 @@
             <!-- ============ PAINEL: PEDIDOS ============ -->
             <section class="admin-panel" id="panel-pedidos" aria-label="Pedidos">
                 <div class="admin-panel-header">
+
+                    <% if (aviso != null && "pedidos".equals(aba)) { %>
+                    <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
+                    <% } %>
+
                     <div>
                         <h1>Pedidos</h1>
                         <p class="admin-panel-subtitle">Acompanhamento dos pedidos em andamento e finalizados.</p>
@@ -199,6 +198,7 @@
                                 achou = false;
 
                                 if (pedidos != null) {
+
                                     while (pedidos.next()) {
                                         achou = true;
 
@@ -211,28 +211,38 @@
                                         boolean semMesaPedido = pedidos.wasNull();
 
                                         String statusPedido = pedidos.getString("status");
+                                        int idPedidoLinha = pedidos.getInt("id_pedido");
                             %>
 
                             <tr>
-                                <td><%= pedidos.getInt("id_pedido") %></td>
+                                <td><%= idPedidoLinha %></td>
                                 <td><%= clientePedido == null ? "—" : esc(clientePedido) %></td>
                                 <td><%= semReservaPedido ? "—" : reservaPedido %></td>
                                 <td><%= semMesaPedido ? "—" : "Mesa " + mesaPedido %></td>
                                 <td><%= fmtData(pedidos.getTimestamp("data_pedido"), false) %></td>
 
                                 <td>
-                                <span class="status-pill <%= statusClass(statusPedido) %>">
-                                <%= esc(statusPedido) %>
-                                </span>
+                                    <span class="status-pill <%= statusClass(statusPedido) %>">
+                                        <%= esc(statusPedido) %>
+                                    </span>
                                 </td>
 
                                 <td><%= fmtPreco(pedidos.getBigDecimal("valor_total")) %></td>
 
                                 <td>
                                     <div class="admin-row-actions">
-                                        <a href="#" class="chip-btn">Ver</a>
-                                        <a href="#" class="chip-btn">Editar</a>
-                                        <a href="#" class="chip-btn">Cancelar</a>
+                                        <a href="<%= request.getContextPath() %>/ControlePedidos?origem=verPedido&id=<%= idPedidoLinha %>" class="chip-btn">Ver</a>
+
+                                        <% if ("em preparo".equalsIgnoreCase(statusPedido)) { %>
+                                        <a href="<%= request.getContextPath() %>/ControlePedidos?origem=verPedido&id=<%= idPedidoLinha %>" class="chip-btn">Editar</a>
+
+                                        <form action="ControlePedidos" method="post" style="display:inline"
+                                              onsubmit="return confirm('Cancelar este pedido?');">
+                                            <input type="hidden" name="origem" value="cancelar" />
+                                            <input type="hidden" name="id_pedido" value="<%= idPedidoLinha %>" />
+                                            <button type="submit" class="chip-btn">Cancelar</button>
+                                        </form>
+                                        <% } %>
                                     </div>
                                 </td>
                             </tr>
