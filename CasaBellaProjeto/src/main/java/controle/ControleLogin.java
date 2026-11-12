@@ -42,6 +42,11 @@ public class ControleLogin extends HttpServlet {
                 Integer idCliente = new ClientesDao().buscarIdPorEmail(email);
                 request.getSession().setAttribute("id_cliente", idCliente);
 
+                String[] dados = new ClientesDao().buscarDados(email);
+                if (dados != null) {
+                    request.getSession().setAttribute("telefone", dados[2]);
+                }
+
                 response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
                 return;
             }

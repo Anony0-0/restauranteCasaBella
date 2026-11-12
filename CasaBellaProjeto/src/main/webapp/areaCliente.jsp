@@ -229,7 +229,7 @@
                     <input type="checkbox" id="abrir-excluir" class="delete-toggle" aria-controls="card-excluir" />
 
                     <div class="profile-actions">
-                        <a href="#" class="btn btn-outline">Editar meus dados</a>
+                        <a href="ControleCliente?origem=carregar" class="btn btn-outline">Editar meus dados</a>
                         <label for="abrir-excluir" class="btn btn-danger">Excluir minha conta</label>
                     </div>
 

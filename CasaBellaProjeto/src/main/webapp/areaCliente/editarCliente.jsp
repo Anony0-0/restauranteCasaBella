@@ -7,18 +7,21 @@
     }
 %>
 <%
+    // Caminho base da aplicação (ex.: /CasaBellaProjeto). Usado em todos os links
+    // porque esta página fica numa subpasta e é aberta por forward do servlet.
+    String ctx = request.getContextPath();
+
     // Só cliente logado pode ver esta página (o ControleLogin guarda o "perfil" na sessão)
     if (!"cliente".equals(session.getAttribute("perfil"))) {
-        response.sendRedirect("login.html");
+        response.sendRedirect(ctx + "/login.html");
         return;
     }
 
-    // O ControleCliente (origem=carregar) busca o cliente no banco e envia para cá.
+    // O ControleCliente (origem=carregar) busca o cliente no banco e envia: {nome, email, telefone}
     // Se alguém abrir a página direto, pedimos ao servlet para buscar os dados.
-    // O ControleCliente (origem=carregar) busca o cliente no banco e envia: {id, nome, email, telefone}
     String[] cliente = (String[]) request.getAttribute("cliente");
     if (cliente == null) {
-        response.sendRedirect("ControleCliente?origem=carregar");
+        response.sendRedirect(ctx + "/ControleCliente?origem=carregar");
         return;
     }
 %>
@@ -34,7 +37,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="../main.css" />
+    <link rel="stylesheet" href="<%= ctx %>/main.css" />
 </head>
 <body>
 
@@ -49,7 +52,7 @@
             <span class="visually-hidden">Abrir menu de navegação</span>
         </label>
 
-        <a href="../index.html" class="brand">
+        <a href="<%= ctx %>/index.html" class="brand">
             <span class="brand-mark">Casa <em>Bella</em></span>
             <span class="brand-sub">CUCINA ITALIANA</span>
         </a>
@@ -57,13 +60,13 @@
         <div class="header-actions">
             <nav class="primary-nav" aria-label="Navegação principal">
                 <ul>
-                    <li><a href="../index.html#inicio">Início</a></li>
-                    <li><a href="../index.html#sabores">Sabores</a></li>
-                    <li><a href="../index.html#ambiente">Ambiente</a></li>
-                    <li><a href="../index.html#contato">Contato</a></li>
+                    <li><a href="<%= ctx %>/index.html#inicio">Início</a></li>
+                    <li><a href="<%= ctx %>/index.html#sabores">Sabores</a></li>
+                    <li><a href="<%= ctx %>/index.html#ambiente">Ambiente</a></li>
+                    <li><a href="<%= ctx %>/index.html#contato">Contato</a></li>
                 </ul>
             </nav>
-            <a href="../areaCliente.jsp" class="avatar-button" aria-label="Minha área">
+            <a href="<%= ctx %>/ControleReserva?origem=listarMinhas" class="avatar-button" aria-label="Minha área">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="3.6"></circle>
                     <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"></path>
@@ -85,7 +88,7 @@
                     <p class="account-sub">Mantenha suas informações atualizadas.</p>
                 </div>
                 <div class="account-head-actions">
-                    <a href="../areaCliente.jsp" class="link-gold">Voltar para minha área</a>
+                    <a href="<%= ctx %>/ControleReserva?origem=listarMinhas" class="link-gold">Voltar para minha área</a>
                 </div>
             </div>
 
@@ -101,28 +104,27 @@
                       o servlet pega da sessão (quem fez login). Por isso o campo de
                       e-mail abaixo é só para exibição e não tem "name".
                     -->
-                    <form class="auth-form" action="ControleCliente" method="post">
+                    <form class="auth-form" action="<%= ctx %>/ControleCliente" method="post">
                         <input type="hidden" name="origem" value="alterar" />
-                        <input type="hidden" name="id_cliente" value="<%= esc(cliente[0]) %>" />
 
                         <div class="field">
                             <label for="nome">Nome completo</label>
-                            <input type="text" id="nome" name="nome" value="<%= esc(cliente[1]) %>" autocomplete="name" required />
+                            <input type="text" id="nome" name="nome" value="<%= esc(cliente[0]) %>" autocomplete="name" required />
                         </div>
 
                         <div class="field">
                             <label for="email">E-mail</label>
-                            <input type="email" id="email" value="<%= esc(cliente[3])%>" readonly />
+                            <input type="email" id="email" value="<%= esc(cliente[1]) %>" readonly />
                         </div>
 
                         <div class="field">
                             <label for="telefone">Telefone</label>
-                            <input type="tel" id="telefone" name="telefone" value="<%= esc(cliente[4]) %>" autocomplete="tel" required />
+                            <input type="tel" id="telefone" name="telefone" value="<%= esc(cliente[2]) %>" autocomplete="tel" required />
                         </div>
 
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Salvar alterações</button>
-                            <a href="../areaCliente.jsp" class="link-gold">Cancelar</a>
+                            <a href="<%= ctx %>/ControleReserva?origem=listarMinhas" class="link-gold">Cancelar</a>
                         </div>
                     </form>
                 </div>
@@ -132,7 +134,7 @@
                     <h2>Excluir minha conta</h2>
                     <p>Esta ação não pode ser desfeita. Para confirmar, digite a sua senha.</p>
 
-                    <form class="auth-form" action="ControleCliente" method="post">
+                    <form class="auth-form" action="<%= ctx %>/ControleCliente" method="post">
                         <input type="hidden" name="origem" value="excluir" />
 
                         <div class="field">

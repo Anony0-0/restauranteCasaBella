@@ -19,8 +19,12 @@ public class ControleCliente extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        if ("editar".equalsIgnoreCase(request.getParameter("origem"))) {
-            abrirEdicao(request, response);
+        String origem = request.getParameter("origem");
+
+        if ("editar".equalsIgnoreCase(origem)) {
+            abrirEdicao(request, response);          // painel da equipe (já existia)
+        } else if ("carregar".equalsIgnoreCase(origem)) {
+            carregarMeusDados(request, response);    // NOVO: cliente editando os próprios dados
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Origem inválida.");
         }
@@ -92,12 +96,63 @@ public class ControleCliente extends HttpServlet {
                     mensagem = texto;
                 }
             }
+        } else if ("alterar".equalsIgnoreCase(origem)) {
+            HttpSession sessao = request.getSession(false);
+            if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
+                response.sendRedirect("login.html");
+                return;
+            }
+
+            // E-mail vem da sessão, NUNCA do formulário
+            String email = (String) sessao.getAttribute("email");
+            String nome = valor(request.getParameter("nome"));
+            String telefone = valor(request.getParameter("telefone"));
+
+            if (nome.isEmpty() || telefone.isEmpty()) {
+                mensagem = "Preencha nome e telefone.";
+            } else {
+                try {
+                    if (new ClientesDao().alterarCliente(email, nome, telefone) == 1) {
+                        // atualiza a sessão: a saudação "Olá, ..." já mostra o nome novo
+                        sessao.setAttribute("nome", nome);
+                        sessao.setAttribute("telefone", telefone);
+                        mensagem = "Dados alterados com sucesso";
+                    } else {
+                        mensagem = "Nenhuma alteração foi feita.";
+                    }
+                } catch (ClassNotFoundException | SQLException erro) {
+                    mensagem = erro.getMessage();
+                }
+            }
         } else {
             mensagem = "Operação inválida.";
         }
 
         request.setAttribute("mens", mensagem);
         request.getRequestDispatcher("mensagens.jsp").forward(request, response);
+    }
+
+    // Cliente logado abre o formulário com os PRÓPRIOS dados (e-mail vem da sessão)
+    private void carregarMeusDados(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession sessao = request.getSession(false);
+        if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            String email = (String) sessao.getAttribute("email");
+            String[] dados = new ClientesDao().buscarDados(email); // {nome, email, telefone}
+            if (dados == null) {
+                response.sendRedirect("login.html");
+                return;
+            }
+            request.setAttribute("cliente", dados);
+            request.getRequestDispatcher("/areaCliente/editarCliente.jsp").forward(request, response);
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
     }
 
     // ===================== EDIÇÃO PELO PAINEL =====================

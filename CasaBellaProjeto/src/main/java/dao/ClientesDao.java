@@ -47,6 +47,42 @@ public class ClientesDao {
         }
     }
 
+    // Retorna {nome, email, telefone} do cliente, ou null se não achar
+    public String[] buscarDados(String email) throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+        try {
+            PreparedStatement ps = con.prepareStatement(
+                    "SELECT nome, email, telefone FROM clientes WHERE email = ?");
+            ps.setString(1, email);
+            ResultSet r = ps.executeQuery();
+            if (r.next()) {
+                String tel = r.getString("telefone");
+                return new String[]{
+                        r.getString("nome"),
+                        r.getString("email"),
+                        tel == null ? "" : tel
+                };
+            }
+            return null;
+        } finally {
+            con.close();
+        }
+    }
+    // Cliente alterando os próprios dados. Retorna 1 se alterou, 0 se nada mudou.
+    public int alterarCliente(String email, String nome, String telefone)
+            throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+        try {
+            PreparedStatement ps = con.prepareStatement(
+                    "UPDATE clientes SET nome = ?, telefone = ? WHERE email = ?");
+            ps.setString(1, nome);
+            ps.setString(2, telefone);
+            ps.setString(3, email);
+            return ps.executeUpdate();
+        } finally {
+            con.close();
+        }
+    }
     //Fazer listagem de TODOS clientes
     public ResultSet listarClientes() throws SQLException, ClassNotFoundException {
 
