@@ -80,4 +80,36 @@ public class PedidosDao {
         }
     }
 
+    // Dados de UM pedido (cabeçalho da tela pedido.jsp)
+    public ResultSet buscarPorId(int idPedido) throws SQLException, ClassNotFoundException {
+        conectar();
+
+        String sql = "SELECT p.id_pedido, c.nome AS cliente, p.id_reserva, p.id_mesa, " +
+                "p.data_pedido, p.status, p.valor_total " +
+                "FROM pedidos p LEFT JOIN clientes c ON c.id_cliente = p.id_cliente " +
+                "WHERE p.id_pedido = ?";
+
+        st = conectado.prepareStatement(sql);
+        st.setInt(1, idPedido);
+        rs = st.executeQuery();
+
+        return rs;
+    }
+
+    // Finaliza ou cancela. Só muda se o pedido ainda estiver "em preparo".
+// Retorna quantas linhas mudaram (0 = pedido já estava fechado ou não existe).
+    public int atualizarStatus(int idPedido, String novoStatus) throws SQLException, ClassNotFoundException {
+        conectar();
+        try {
+            st = conectado.prepareStatement(
+                    "UPDATE pedidos SET status = ? WHERE id_pedido = ? AND status = 'em preparo'");
+            st.setString(1, novoStatus);
+            st.setInt(2, idPedido);
+            resultado = st.executeUpdate();
+            return resultado;
+        } finally {
+            conectado.close();
+        }
+    }
+
 }
