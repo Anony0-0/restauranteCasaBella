@@ -31,7 +31,7 @@ CREATE TABLE clientes (
 CREATE TABLE funcionarios (
     id_func INT NOT NULL,
     nome VARCHAR(120) NOT NULL,
-    usermobi VARCHAR(40) NOT NULL,
+    usermobi VARCHAR(40),
     email VARCHAR(80) NOT NULL,
     senha VARCHAR(255) NOT NULL,
     cargo VARCHAR(50) NOT NULL,
