@@ -26,6 +26,15 @@ public class ProdutosDao {
 
     }
 
+    public ResultSet listarDisponiveis() throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+
+        PreparedStatement ps = con.prepareStatement(
+                "SELECT id_produto, categoria, nome, preco FROM produtos WHERE disponibilidade = 'disponivel' ORDER BY categoria, nome");
+
+        return ps.executeQuery();
+    }
+
     public int cadastrarProduto(int idProduto, String categoria, String nome, String descricao,
                                 BigDecimal preco, boolean disponibilidade)
             throws SQLException, ClassNotFoundException {
