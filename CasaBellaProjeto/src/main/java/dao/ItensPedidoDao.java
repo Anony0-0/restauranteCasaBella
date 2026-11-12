@@ -18,6 +18,18 @@ public class ItensPedidoDao {
         conectado = ConexaoBD.conectar();
     }
 
+    public ResultSet listarPorPedido(int idPedido) throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+
+        String sql = "SELECT i.id_itens, i.id_produto, pr.nome, i.quantidade, i.preco_uni " +
+                "FROM itens_pedido i JOIN produtos pr ON pr.id_produto = i.id_produto " +
+                "WHERE i.id_pedido = ? ORDER BY i.id_itens";
+
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, idPedido);
+        return ps.executeQuery();
+    }
+
     // Adiciona um item ao pedido e recalcula o valor_total
     public int adicionarItem(int idPedido, int idProduto, int quantidade)
             throws SQLException, ClassNotFoundException {
@@ -46,14 +58,23 @@ public class ItensPedidoDao {
             }
             java.math.BigDecimal preco = r.getBigDecimal("preco");
 
-            // 3. Insere o item
+            // 3. Se o produto já está no pedido, soma a quantidade; senão insere um item novo
             ps = conectado.prepareStatement(
-                    "INSERT INTO itens_pedido (id_pedido, id_produto, quantidade, preco_uni) VALUES (?, ?, ?, ?)");
-            ps.setInt(1, idPedido);
-            ps.setInt(2, idProduto);
-            ps.setInt(3, quantidade);
-            ps.setBigDecimal(4, preco);
-            ps.executeUpdate();
+                    "UPDATE itens_pedido SET quantidade = quantidade + ? " +
+                            "WHERE id_pedido = ? AND id_produto = ?");
+            ps.setInt(1, quantidade);
+            ps.setInt(2, idPedido);
+            ps.setInt(3, idProduto);
+
+            if (ps.executeUpdate() == 0) {
+                ps = conectado.prepareStatement(
+                        "INSERT INTO itens_pedido (id_pedido, id_produto, quantidade, preco_uni) VALUES (?, ?, ?, ?)");
+                ps.setInt(1, idPedido);
+                ps.setInt(2, idProduto);
+                ps.setInt(3, quantidade);
+                ps.setBigDecimal(4, preco);
+                ps.executeUpdate();
+            }
 
             // 4. Recalcula o total do pedido
             ps = conectado.prepareStatement(
@@ -74,4 +95,42 @@ public class ItensPedidoDao {
             conectado.close();
         }
     }
+
+    // Remove um item do pedido (só se o pedido ainda estiver "em preparo") e recalcula o valor_total
+    public boolean removerItem(int idPedido, int idItem) throws SQLException, ClassNotFoundException {
+        conectar();
+        try {
+            conectado.setAutoCommit(false);
+
+            PreparedStatement ps = conectado.prepareStatement(
+                    "DELETE i FROM itens_pedido i JOIN pedidos p ON p.id_pedido = i.id_pedido " +
+                            "WHERE i.id_itens = ? AND i.id_pedido = ? AND p.status = 'em preparo'");
+            ps.setInt(1, idItem);
+            ps.setInt(2, idPedido);
+
+            if (ps.executeUpdate() == 0) {
+                conectado.rollback();
+                return false;
+            }
+
+            // COALESCE: se removeu o último item, o total volta a 0 em vez de NULL
+            ps = conectado.prepareStatement(
+                    "UPDATE pedidos SET valor_total = " +
+                            "(SELECT COALESCE(SUM(quantidade * preco_uni), 0) FROM itens_pedido WHERE id_pedido = ?) " +
+                            "WHERE id_pedido = ?");
+            ps.setInt(1, idPedido);
+            ps.setInt(2, idPedido);
+            ps.executeUpdate();
+
+            conectado.commit();
+            return true;
+
+        } catch (SQLException e) {
+            conectado.rollback();
+            throw e;
+        } finally {
+            conectado.close();
+        }
+    }
+
 }
