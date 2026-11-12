@@ -16,7 +16,7 @@ class ApiException implements Exception {
 class ApiService {
   // ENDEREÇO PRINCIPAL DA API
   static const String apiRoot =
-      'http://10.27.67.174:8080/CasaBellaProjeto-1.0-SNAPSHOT/api';
+      'http://SEU_ID:8080/CasaBellaProjeto-1.0-SNAPSHOT/api';
 
   // ENDEREÇOS ESPECÍFICOS
   static const String baseUrl = '$apiRoot/reservas';
