@@ -113,10 +113,11 @@ public class ControleCliente extends HttpServlet {
             } else {
                 try {
                     if (new ClientesDao().alterarCliente(email, nome, telefone) == 1) {
-                        // atualiza a sessão: a saudação "Olá, ..." já mostra o nome novo
                         sessao.setAttribute("nome", nome);
                         sessao.setAttribute("telefone", telefone);
-                        mensagem = "Dados alterados com sucesso";
+                        sessao.setAttribute("aviso", "Dados alterados com sucesso.");
+                        response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
+                        return;
                     } else {
                         mensagem = "Nenhuma alteração foi feita.";
                     }

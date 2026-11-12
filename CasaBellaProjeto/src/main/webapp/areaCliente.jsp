@@ -30,6 +30,8 @@
 
     Integer idClienteLogado = (Integer) session.getAttribute("id_cliente");
     String primeiroNome = nome.trim().split("\\s+")[0];
+    String aviso = (String) session.getAttribute("aviso");
+        session.removeAttribute("aviso"); // aparece uma vez só
 
     // Lê as reservas UMA vez e descobre qual é a próxima
     ResultSet rsReservas = (ResultSet) request.getAttribute("reservas");
@@ -125,6 +127,9 @@
                     <a href="ControleLogin?acao=sair" class="link-gold">Sair</a>
                 </div>
             </div>
+            <% if (aviso != null) { %>
+                        <p class="account-sub" style="margin-top: var(--space-md); color: var(--color-gold-bright);"><%= esc(aviso) %></p>
+                        <% } %>
 
             <!-- Destaque: próxima reserva -->
             <% if (proxima != null) {
