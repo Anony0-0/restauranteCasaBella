@@ -46,15 +46,23 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      final nome = dados['nome'] as String? ?? 'Atendente';
-      final email = dados['email'] as String? ?? _usuarioController.text.trim();
-      final perfil = dados['perfil'] as String? ?? 'funcionario';
+      final nome = dados['nome'] is String
+          ? dados['nome'] as String
+          : 'Atendente';
+      final email = dados['email'] is String
+          ? dados['email'] as String
+          : _usuarioController.text.trim();
+      final cargo = dados['cargo'] is String
+          ? dados['cargo'] as String
+          : dados['perfil'] is String
+          ? dados['perfil'] as String
+          : 'funcionario';
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) =>
-              InicioPage(nomeGarcom: nome, idUsuario: email, cargo: perfil),
+              InicioPage(nomeGarcom: nome, idUsuario: email, cargo: cargo),
         ),
       );
     } catch (erro) {
@@ -127,9 +135,15 @@ class _LoginPageState extends State<LoginPage> {
                       labelText: 'E-mail',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
-                    validator: (valor) => valor == null || valor.trim().isEmpty
-                        ? 'Informe seu e-mail.'
-                        : null,
+                    validator: (valor) {
+                      final email = valor?.trim() ?? '';
+                      if (email.isEmpty) return 'Informe seu e-mail.';
+                      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                          .hasMatch(email)) {
+                        return 'Informe um e-mail válido.';
+                      }
+                      return null;
+                    },
                   ),
 
                   const SizedBox(height: 16),

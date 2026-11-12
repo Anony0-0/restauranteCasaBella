@@ -71,10 +71,10 @@ void main() {
     await expectLater(
       ApiService.confirmarReserva(17),
       throwsA(
-        isA<Exception>().having(
-          (erro) => erro.toString(),
+        isA<ApiException>().having(
+          (erro) => erro.statusCode,
           'status HTTP',
-          contains('409'),
+          409,
         ),
       ),
     );
@@ -90,10 +90,10 @@ void main() {
       await expectLater(
         ApiService.cancelarReserva(17),
         throwsA(
-          isA<Exception>().having(
-            (erro) => erro.toString(),
+          isA<ApiException>().having(
+            (erro) => erro.statusCode,
             'status HTTP',
-            contains('409'),
+            409,
           ),
         ),
       );

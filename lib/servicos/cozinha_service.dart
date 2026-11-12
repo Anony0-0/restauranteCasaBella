@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -7,9 +8,7 @@ class CozinhaService {
 
   bool get habilitado => _endpoint.trim().isNotEmpty;
 
-  Future<Map<String, dynamic>> enviarPedido(
-    Map<String, dynamic> pedido,
-  ) async {
+  Future<Map<String, dynamic>> enviarPedido(Map<String, dynamic> pedido) async {
     if (!habilitado) {
       final salvo = Map<String, dynamic>.from(pedido);
       salvo['status'] = 'somente_local';
@@ -75,21 +74,31 @@ class CozinhaService {
           .get(Uri.parse('${base}orders/$id'))
           .timeout(const Duration(seconds: 10));
 
-      if (resposta.statusCode == 200) {
-        final conteudo = jsonDecode(resposta.body);
-        if (conteudo is Map<String, dynamic> && conteudo['status'] != null) {
-          final atualizado = Map<String, dynamic>.from(pedido);
-          atualizado['status'] = conteudo['status'].toString();
-          return atualizado;
-        }
+      if (resposta.statusCode == 404) {
+        throw Exception('O pedido não foi encontrado na cozinha.');
       }
-    } catch (erro) {
-      // A consulta falha silenciosamente para manter o fluxo local estável.
-      // O pedido continua disponível para o atendimento.
-      return pedido;
-    }
+      if (resposta.statusCode == 409) {
+        throw Exception('O pedido já foi finalizado e não pode ser consultado.');
+      }
+      if (resposta.statusCode != 200) {
+        throw Exception(
+          'A cozinha não conseguiu consultar o pedido '
+          '(HTTP ${resposta.statusCode}).',
+        );
+      }
 
-    return pedido;
+      final conteudo = jsonDecode(resposta.body);
+      if (conteudo is! Map || conteudo['status'] is! String) {
+        throw const FormatException('Status do pedido inválido.');
+      }
+      final atualizado = Map<String, dynamic>.from(pedido);
+      atualizado['status'] = conteudo['status'];
+      return atualizado;
+    } on TimeoutException {
+      throw Exception('A consulta à cozinha expirou. Tente novamente.');
+    } on http.ClientException {
+      throw Exception('Não foi possível conectar à cozinha. Verifique a rede.');
+    }
   }
 
   Future<void> atualizarPedido(
@@ -99,8 +108,8 @@ class CozinhaService {
     if (!habilitado) return;
 
     final statusAtual = pedido['status']?.toString();
-    final integracaoAtiva = pedido['integradoCozinha'] == true ||
-        pedido['idCozinha'] != null;
+    final integracaoAtiva =
+        pedido['integradoCozinha'] == true || pedido['idCozinha'] != null;
     final podeEnviar = const {
       'enviado',
       'preparando',
@@ -122,7 +131,9 @@ class CozinhaService {
         .timeout(const Duration(seconds: 12));
 
     if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
-      throw Exception('A cozinha não confirmou a alteração (HTTP ${resposta.statusCode}).');
+      throw Exception(
+        'A cozinha não confirmou a alteração (HTTP ${resposta.statusCode}).',
+      );
     }
   }
 
@@ -133,8 +144,8 @@ class CozinhaService {
     if (!habilitado) return;
 
     final statusAtual = pedido['status']?.toString();
-    final integracaoAtiva = pedido['integradoCozinha'] == true ||
-        pedido['idCozinha'] != null;
+    final integracaoAtiva =
+        pedido['integradoCozinha'] == true || pedido['idCozinha'] != null;
     final podeEnviar = const {
       'enviado',
       'preparando',
@@ -156,7 +167,9 @@ class CozinhaService {
         .timeout(const Duration(seconds: 12));
 
     if (resposta.statusCode < 200 || resposta.statusCode >= 300) {
-      throw Exception('A cozinha não confirmou o cancelamento (HTTP ${resposta.statusCode}).');
+      throw Exception(
+        'A cozinha não confirmou o cancelamento (HTTP ${resposta.statusCode}).',
+      );
     }
   }
 }

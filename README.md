@@ -42,7 +42,7 @@ Os esquemas de referência divergem: `database/mysql_schema.sql` define `usuario
 
 O Flutter deve receber identificadores reais fornecidos pelo backend. IDs gerados apenas no armazenamento local não são IDs garantidos pelo banco e não devem ser utilizados para integração com produção.
 
-Além disso, o catálogo e as mesas de demonstração são locais. Não envie pedidos deste modo a um banco real. A API deve fornecer IDs reais, validar disponibilidade e mesa e gravar pedidos e itens atomicamente. O total deve ser recalculado no servidor ou pelas triggers do MySQL, nunca confiado somente ao total enviado pelo aplicativo.
+O catálogo é carregado pelo Flutter via `GET /api/produtos` e usa os IDs reais retornados pela API; produtos sem ID, preço ou disponibilidade válida são rejeitados, e produtos indisponíveis não podem ser adicionados. As mesas e os pedidos ainda dependem do armazenamento local nesta etapa. Não envie pedidos deste modo a um banco real. Para concluir a migração, a API deve fornecer IDs reais, validar disponibilidade e mesa e gravar pedidos e itens atomicamente. O total deve ser recalculado no servidor ou pelas triggers do MySQL, nunca confiado somente ao total enviado pelo aplicativo.
 
 O SQL anexado inclui usuários/contas com senha de demonstração em texto (`DEMO_SEM_LOGIN`); essas inserções foram deliberadamente excluídas do schema MySQL deste workspace. O cadastro de usuários deve ser realizado pelo backend, com armazenamento seguro de senhas.
 

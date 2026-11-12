@@ -162,8 +162,24 @@ void main() {
       qtdPessoas: 2,
       horario: DateTime.utc(2026, 11, 7, 20),
     );
-    ApiService.client = MockClient(
-      (_) async => http.Response(
+    ApiService.client = MockClient((request) async {
+      if (request.url.path == '${Uri.parse(ApiService.apiRoot).path}/produtos') {
+        return http.Response(
+          jsonEncode([
+            {
+              'id_produto': 21,
+              'categoria': 'Entradas',
+              'nome': 'Bruschetta al Pomodoro',
+              'descricao': 'Pão italiano, tomate, alho e manjericão.',
+              'preco': 18.90,
+              'disponibilidade': 'disponivel',
+            },
+          ]),
+          200,
+        );
+      }
+
+      return http.Response(
         jsonEncode([
           {
             'id_reserva': reserva['id_reserva'],
@@ -175,8 +191,8 @@ void main() {
           },
         ]),
         200,
-      ),
-    );
+      );
+    });
 
     await tester.pumpWidget(
       const MaterialApp(home: ReservasPage(atendente: 'Atendente Teste')),

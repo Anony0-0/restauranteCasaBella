@@ -1,26 +1,31 @@
 import '../models/produto.dart';
+import '../servicos/api_service.dart';
 
-/// Mantém IDs locais determinísticos para que itens do pedido guardem a FK.
 class CatalogoController {
-  int idDoProduto(String nome) {
-    var hash = 17;
-    for (final codePoint in nome.trim().toLowerCase().runes) {
-      hash = (hash * 31 + codePoint) & 0x7fffffff;
-    }
-    return hash == 0 ? 1 : hash;
+  Future<List<Produto>> listar() async {
+    final dados = await ApiService.listarProdutos();
+    return dados.map((item) {
+      final produto = converter(Map<String, Object?>.from(item));
+      if (produto.idProduto == null || produto.idProduto! <= 0) {
+        throw const FormatException('Produto sem identificador válido.');
+      }
+      if (produto.nome.trim().isEmpty || produto.categoria.trim().isEmpty) {
+        throw const FormatException('Produto com nome ou categoria inválidos.');
+      }
+      final preco = item['preco'] is num
+          ? (item['preco'] as num).toDouble()
+          : double.tryParse(item['preco']?.toString() ?? '');
+      if (preco == null || !preco.isFinite || preco < 0) {
+        throw const FormatException('Produto com preço inválido.');
+      }
+      if (item['disponibilidade'] == null) {
+        throw const FormatException('Produto sem disponibilidade válida.');
+      }
+      return produto;
+    }).toList();
   }
 
   Produto converter(Map<String, Object?> dados) {
-    final produto = Produto.fromMap(dados);
-    return Produto(
-      idProduto:
-          produto.idProduto ?? idDoProduto(dados['nome']?.toString() ?? ''),
-      categoria: produto.categoria,
-      nome: produto.nome,
-      descricao: produto.descricao,
-      preco: produto.preco,
-      imagem: produto.imagem,
-      disponivel: produto.disponivel,
-    );
+    return Produto.fromMap(dados);
   }
 }

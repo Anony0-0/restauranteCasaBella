@@ -61,20 +61,31 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future<void> enviarPedido() async {
+    if (itens.isEmpty || enviando) return;
     setState(() => enviando = true);
-    final pedido = await PedidoController().enviar(
-      mesa: widget.mesa,
-      mesaId: widget.mesaId,
-      atendente: widget.garcom,
-      itens: itens,
-    );
-    if (!mounted) return;
-    setState(() => enviando = false);
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => AcompanhamentoPage(pedidos: [pedido])),
-      (route) => route.isFirst,
-    );
+    try {
+      final pedido = await PedidoController().enviar(
+        mesa: widget.mesa,
+        mesaId: widget.mesaId,
+        atendente: widget.garcom,
+        itens: itens,
+      );
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AcompanhamentoPage(pedidos: [pedido]),
+        ),
+        (route) => route.isFirst,
+      );
+    } catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível enviar o pedido: $erro')),
+      );
+    } finally {
+      if (mounted) setState(() => enviando = false);
+    }
   }
 
   @override

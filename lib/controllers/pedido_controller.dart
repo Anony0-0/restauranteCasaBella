@@ -44,7 +44,9 @@ class PedidoController {
   ) async {
     final pedidos = await listar();
     for (final pedido in pedidos) {
-      if ((pedido['id_pedido'] as num?)?.toInt() == pedidoId) return pedido;
+      if (int.tryParse(pedido['id_pedido']?.toString() ?? '') == pedidoId) {
+        return pedido;
+      }
     }
     return null;
   }

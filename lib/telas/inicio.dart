@@ -17,7 +17,16 @@ class InicioPage extends StatelessWidget {
   });
 
   Future<void> _abrirAcompanhamento(BuildContext context) async {
-    final pedidos = await PedidoController().listar();
+    late final List<Map<String, dynamic>> pedidos;
+    try {
+      pedidos = await PedidoController().listar();
+    } catch (erro) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível carregar os pedidos: $erro')),
+      );
+      return;
+    }
     if (!context.mounted) return;
     if (pedidos.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

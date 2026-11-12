@@ -23,14 +23,20 @@ class _AcompanhamentoPageState extends State<AcompanhamentoPage> {
 
   Future<void> consultarStatus(int index) async {
     final pedido = pedidos[index];
-    final id = pedido['id'].toString();
+    final id = (pedido['id'] ?? pedido['id_pedido'] ?? 'pedido').toString();
     setState(() => consultando.add(id));
-    final atualizado = await PedidoController().atualizarStatus(pedido);
-    if (!mounted) return;
-    setState(() {
-      pedidos[index] = atualizado;
-      consultando.remove(id);
-    });
+    try {
+      final atualizado = await PedidoController().atualizarStatus(pedido);
+      if (!mounted) return;
+      setState(() => pedidos[index] = atualizado);
+    } catch (erro) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Não foi possível consultar o pedido: $erro')),
+      );
+    } finally {
+      if (mounted) setState(() => consultando.remove(id));
+    }
   }
 
   Future<void> editarPedido(int index) async {
