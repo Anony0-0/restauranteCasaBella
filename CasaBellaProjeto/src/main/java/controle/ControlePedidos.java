@@ -202,7 +202,6 @@ public class ControlePedidos extends HttpServlet {
         }
     }
 
-    // NOVO
     private void removerItem(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
