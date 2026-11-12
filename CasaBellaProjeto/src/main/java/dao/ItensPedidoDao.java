@@ -76,15 +76,6 @@ public class ItensPedidoDao {
                 ps.executeUpdate();
             }
 
-            // 4. Recalcula o total do pedido
-            ps = conectado.prepareStatement(
-                    "UPDATE pedidos SET valor_total = " +
-                            "(SELECT SUM(quantidade * preco_uni) FROM itens_pedido WHERE id_pedido = ?) " +
-                            "WHERE id_pedido = ?");
-            ps.setInt(1, idPedido);
-            ps.setInt(2, idPedido);
-            ps.executeUpdate();
-
             conectado.commit();
             return OK;
 
@@ -102,9 +93,19 @@ public class ItensPedidoDao {
         try {
             conectado.setAutoCommit(false);
 
+            // 1. Verifica se o pedido está aberto (trava a linha para evitar corrida)
             PreparedStatement ps = conectado.prepareStatement(
-                    "DELETE i FROM itens_pedido i JOIN pedidos p ON p.id_pedido = i.id_pedido " +
-                            "WHERE i.id_itens = ? AND i.id_pedido = ? AND p.status = 'em preparo'");
+                    "SELECT 1 FROM pedidos WHERE id_pedido = ? AND status = 'em preparo' FOR UPDATE");
+            ps.setInt(1, idPedido);
+            ResultSet r = ps.executeQuery();
+            if (!r.next()) {
+                conectado.rollback();
+                return false;
+            }
+
+            // 2. DELETE só em itens_pedido: o trigger recalcula o valor_total
+            ps = conectado.prepareStatement(
+                    "DELETE FROM itens_pedido WHERE id_itens = ? AND id_pedido = ?");
             ps.setInt(1, idItem);
             ps.setInt(2, idPedido);
 
@@ -112,15 +113,6 @@ public class ItensPedidoDao {
                 conectado.rollback();
                 return false;
             }
-
-            // COALESCE: se removeu o último item, o total volta a 0 em vez de NULL
-            ps = conectado.prepareStatement(
-                    "UPDATE pedidos SET valor_total = " +
-                            "(SELECT COALESCE(SUM(quantidade * preco_uni), 0) FROM itens_pedido WHERE id_pedido = ?) " +
-                            "WHERE id_pedido = ?");
-            ps.setInt(1, idPedido);
-            ps.setInt(2, idPedido);
-            ps.executeUpdate();
 
             conectado.commit();
             return true;
