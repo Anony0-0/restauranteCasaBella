@@ -4,10 +4,10 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static const String baseUrl =
-      'http://10.47.32.174:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/reservas';
+      'http://SEU_ID:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/reservas';
 
   static const String loginUrl =
-      'http://10.47.32.174:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/login';
+      'http://SEU_ID:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/login';
 
   static http.Client client = http.Client();
 
