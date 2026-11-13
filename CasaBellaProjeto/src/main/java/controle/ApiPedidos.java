@@ -1,6 +1,12 @@
 //urls pedidos:
-// criar pedidos: http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos
-//adicionar produtos: http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos/itens
+// criar pedido:       POST http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos
+// adicionar produto:  POST http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos/itens
+// remover item:       POST http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos/itens/remover
+// listar pedidos:     GET  http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos
+// ver um pedido:      GET  http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos?id=
+
+//final url = Uri.parse('http://SEU_IP:8080/CasaBellaProjeto-1.0-SNAPSHOT/api/pedidos?id=$idPedido');  //exemplo que como ficaria o link de ver pedido no flutter
+
 
 package controle;
 
@@ -12,6 +18,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObjectBuilder;
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,7 +37,11 @@ public class ApiPedidos extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        if (request.getServletPath().endsWith("/itens")) {
+        String caminho = request.getServletPath();
+
+        if (caminho.endsWith("/itens/remover")) {
+            removerItem(request, response);
+        } else if (caminho.endsWith("/itens")) {
             adicionarItem(request, response);
         } else {
             cadastrarPedido(request, response);
@@ -109,5 +125,121 @@ public class ApiPedidos extends HttpServlet {
     private void responderErro(HttpServletResponse response, int status, String mensagem) throws IOException {
         responderJson(response, status,
                 Json.createObjectBuilder().add("erro", mensagem).build().toString());
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        if (request.getParameter("id") != null) {
+            verPedido(request, response);
+        } else {
+            listarPedidos(response);
+        }
+    }
+
+    // GET /api/pedidos  ->  [ {...}, {...} ]
+    private void listarPedidos(HttpServletResponse response) throws IOException {
+        try {
+            ResultSet rs = new PedidosDao().listarPedidos();
+            responderJson(response, HttpServletResponse.SC_OK, resultSetParaJson(rs).toString());
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            responderErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro ao listar pedidos.");
+        }
+    }
+
+    // GET /api/pedidos?id=12  ->  {"pedido": {...}, "itens": [...]}
+    private void verPedido(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        try {
+            Integer idPedido = lerInteiroOpcional(request.getParameter("id"));
+            if (idPedido == null) {
+                responderErro(response, HttpServletResponse.SC_BAD_REQUEST, "Pedido inválido.");
+                return;
+            }
+
+            JsonArray pedido = resultSetParaJson(new PedidosDao().buscarPorId(idPedido));
+            if (pedido.isEmpty()) {
+                responderErro(response, HttpServletResponse.SC_NOT_FOUND, "Pedido não encontrado.");
+                return;
+            }
+
+            JsonArray itens = resultSetParaJson(new ItensPedidoDao().listarPorPedido(idPedido));
+
+            responderJson(response, HttpServletResponse.SC_OK,
+                    Json.createObjectBuilder()
+                            .add("pedido", pedido.get(0))
+                            .add("itens", itens)
+                            .build().toString());
+
+        } catch (NumberFormatException e) {
+            responderErro(response, HttpServletResponse.SC_BAD_REQUEST, "Pedido inválido.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            responderErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro ao buscar pedido.");
+        }
+    }
+
+    // POST /api/pedidos/itens/remover  (id_pedido, id_itens)  ->  {"ok": true}
+    private void removerItem(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        try {
+            Integer idPedido = lerInteiroOpcional(request.getParameter("id_pedido"));
+            Integer idItem = lerInteiroOpcional(request.getParameter("id_itens"));
+
+            if (idPedido == null || idItem == null) {
+                responderErro(response, HttpServletResponse.SC_BAD_REQUEST, "Valores inválidos.");
+                return;
+            }
+
+            boolean ok = new ItensPedidoDao().removerItem(idPedido, idItem);
+
+            if (!ok) {
+                responderErro(response, HttpServletResponse.SC_CONFLICT, "Não foi possível remover o item.");
+                return;
+            }
+
+            responderJson(response, HttpServletResponse.SC_OK,
+                    Json.createObjectBuilder().add("ok", true).build().toString());
+
+        } catch (NumberFormatException e) {
+            responderErro(response, HttpServletResponse.SC_BAD_REQUEST, "Valores inválidos.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            responderErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro ao remover item.");
+        }
+    }
+    private JsonArray resultSetParaJson(ResultSet rs) throws SQLException {
+        JsonArrayBuilder lista = Json.createArrayBuilder();
+        ResultSetMetaData md = rs.getMetaData();
+        int colunas = md.getColumnCount();
+
+        while (rs.next()) {
+            JsonObjectBuilder obj = Json.createObjectBuilder();
+            for (int i = 1; i <= colunas; i++) {
+                String nome = md.getColumnLabel(i);
+                Object v = rs.getObject(i);
+
+                if (v == null) {
+                    obj.addNull(nome);
+                } else if (v instanceof Integer) {
+                    obj.add(nome, (Integer) v);
+                } else if (v instanceof Long) {
+                    obj.add(nome, (Long) v);
+                } else if (v instanceof BigDecimal) {
+                    obj.add(nome, (BigDecimal) v);
+                } else if (v instanceof Double) {
+                    obj.add(nome, (Double) v);
+                } else if (v instanceof Boolean) {
+                    obj.add(nome, (Boolean) v);
+                } else {
+                    obj.add(nome, v.toString()); // datas, textos, enums...
+                }
+            }
+            lista.add(obj);
+        }
+        return lista.build();
     }
 }
