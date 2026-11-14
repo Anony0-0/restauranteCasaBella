@@ -1737,3 +1737,14 @@ section {
     border-color: var(--color-wine-bright);
     color: var(--color-cream);
 }
+.admin-row-actions button.chip-btn {
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--step--1);
+    line-height: inherit;
+    cursor: pointer;
+}
+
+.admin-row-actions form {
+    margin: 0;
+}

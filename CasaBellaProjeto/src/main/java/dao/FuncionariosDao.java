@@ -83,5 +83,56 @@ public class FuncionariosDao {
 
     }
 
+    public String[] buscarFuncionario(int idFunc) throws ClassNotFoundException, SQLException {
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement(
+                "SELECT id_func, nome, usermobi, email, cargo, admissao FROM funcionarios WHERE id_func = ?")) {
+            ps.setInt(1, idFunc);
+            try (ResultSet r = ps.executeQuery()) {
+                if (r.next()) {
+                    return new String[]{
+                            r.getString("id_func"), r.getString("nome"), r.getString("usermobi"),
+                            r.getString("email"), r.getString("cargo"), r.getString("admissao")
+                    };
+                }
+                return null;
+            }
+        } finally {
+            con.close();
+        }
+    }
+
+    // Não mexe na senha
+    public int alterarFuncionario(int idFunc, String nome, String usermobi, String email,
+                                  String cargo, String admissao) throws ClassNotFoundException, SQLException {
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement(
+                "UPDATE funcionarios SET nome=?, usermobi=?, email=?, cargo=?, admissao=? WHERE id_func=?")) {
+            ps.setString(1, nome);
+            ps.setString(2, usermobi);
+            ps.setString(3, email);
+            ps.setString(4, cargo);
+            if (admissao == null || admissao.trim().isEmpty()) {
+                ps.setNull(5, java.sql.Types.DATE);
+            } else {
+                ps.setDate(5, java.sql.Date.valueOf(admissao)); // yyyy-MM-dd
+            }
+            ps.setInt(6, idFunc);
+            return ps.executeUpdate();
+        } finally {
+            con.close();
+        }
+    }
+
+    public int excluirFuncionario(int idFunc) throws ClassNotFoundException, SQLException {
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement("DELETE FROM funcionarios WHERE id_func = ?")) {
+            ps.setInt(1, idFunc);
+            return ps.executeUpdate();
+        } finally {
+            con.close();
+        }
+    }
+
 }
 

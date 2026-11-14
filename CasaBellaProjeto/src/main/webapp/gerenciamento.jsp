@@ -161,12 +161,11 @@
                     <div class="admin-filter-bar">
                         <div class="admin-filter-field">
                             <label for="filtro-cliente">Cliente</label>
-                            <input type="text" id="filtro-cliente" placeholder="Buscar por nome" />
-                        </div>
+                            <input type="text" id="filtro-cliente" data-filtro data-col="1" placeholder="Buscar por nome" />                        </div>
 
                         <div class="admin-filter-field">
                             <label for="filtro-mesa">Mesa</label>
-                            <select id="filtro-mesa">
+                            <select id="filtro-mesa" data-filtro data-col="3">
                                 <option>Todas</option>
                             </select>
                         </div>
@@ -286,6 +285,13 @@
                     <a href="cadastroCliente.jsp" class="btn btn-primary">Novo cliente</a>
                 </div>
 
+                <div class="admin-filter-bar">
+                    <div class="admin-filter-field">
+                        <label for="busca-clientes">Buscar</label>
+                        <input type="text" id="busca-clientes" data-filtro placeholder="Nome, e-mail ou telefone" />
+                    </div>
+                </div>
+
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <thead>
@@ -337,6 +343,13 @@
                 <% if (aviso != null && "reservas".equals(aba)) { %>
                 <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
                 <% } %>
+
+                <div class="admin-filter-bar">
+                    <div class="admin-filter-field">
+                        <label for="busca-reservas">Buscar</label>
+                        <input type="text" id="busca-reservas" data-filtro placeholder="Cliente, contato ou mesa" />
+                    </div>
+                </div>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
@@ -435,6 +448,13 @@
                 <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
                 <% } %>
 
+                <div class="admin-filter-bar">
+                    <div class="admin-filter-field">
+                        <label for="busca-produtos">Buscar</label>
+                        <input type="text" id="busca-produtos" data-filtro placeholder="Nome, categoria ou descrição" />
+                    </div>
+                </div>
+
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <thead>
@@ -491,6 +511,15 @@
                     <a href="cadastroFuncionario.jsp" class="btn btn-primary">Novo funcionário</a>
                 </div>
 
+                <div class="admin-filter-bar">
+                    <div class="admin-filter-field">
+                        <label for="busca-funcionarios">Buscar</label>
+                        <input type="text" id="busca-funcionarios" data-filtro placeholder="Nome, cargo ou e-mail" />
+                    </div>
+                </div>
+
+                <div class="admin-table-wrap">
+
                 <div class="admin-table-wrap">
                     <table class="admin-table">
                         <thead>
@@ -520,7 +549,14 @@
                             <td><%= esc(funcionarios.getString("admissao")) %></td>
                             <td>
                                 <div class="admin-row-actions">
-                                    <a href="#">Editar</a>
+                                    <a href="<%= request.getContextPath() %>/ControleFuncionario?origem=editarFuncionario&id=<%= esc(funcionarios.getString("id_func")) %>" class="chip-btn">Editar</a>
+
+                                    <form action="ControleFuncionario" method="post" style="display:inline"
+                                          onsubmit="return confirm('Excluir este funcionário?');">
+                                        <input type="hidden" name="origem" value="excluirFuncionario" />
+                                        <input type="hidden" name="id_func" value="<%= esc(funcionarios.getString("id_func")) %>" />
+                                        <button type="submit" class="chip-btn">Excluir</button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -540,5 +576,63 @@
     </main>
 
 </div>
+<script>
+    function normalizar(t) {
+        return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    }
+
+    document.querySelectorAll(".admin-panel").forEach(function (painel) {
+        var campos = painel.querySelectorAll("[data-filtro]");
+        if (!campos.length) return;                 // painel sem filtro: ignora
+        var linhas = painel.querySelectorAll("tbody tr");
+
+        // Preenche o select (Mesa) com as mesas que existem na tabela
+        painel.querySelectorAll("select[data-filtro]").forEach(function (sel) {
+            var vistos = {};
+            linhas.forEach(function (tr) {
+                var td = tr.querySelectorAll("td")[sel.dataset.col];
+                if (!td) return;
+                var v = td.textContent.trim();
+                if (v && v !== "—" && !vistos[v]) {
+                    vistos[v] = true;
+                    var op = document.createElement("option");
+                    op.textContent = v;
+                    sel.appendChild(op);
+                }
+            });
+        });
+
+        function aplicar() {
+            linhas.forEach(function (tr) {
+                var celulas = tr.querySelectorAll("td");
+                if (celulas.length < 2) return;     // linha "Nenhum registro"
+                var mostrar = true;
+
+                campos.forEach(function (campo) {
+                    var termo = normalizar(campo.value.trim());
+                    if (termo === "" || termo === "todas") return;
+
+                    var texto = campo.dataset.col !== undefined
+                        ? celulas[campo.dataset.col].textContent
+                        : Array.prototype.slice.call(celulas, 0, -1)
+                              .map(function (td) { return td.textContent; }).join(" ");
+                    texto = normalizar(texto.trim());
+
+                    var bate = campo.tagName === "SELECT"
+                        ? texto === termo               // mesa: tem que ser igual
+                        : texto.indexOf(termo) !== -1;  // texto: basta conter
+                    if (!bate) mostrar = false;
+                });
+
+                tr.style.display = mostrar ? "" : "none";
+            });
+        }
+
+        campos.forEach(function (campo) {
+            campo.addEventListener("input", aplicar);
+            campo.addEventListener("change", aplicar);
+        });
+    });
+</script>
 </body>
 </html>
