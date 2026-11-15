@@ -41,12 +41,13 @@
 
     while (rsReservas != null && rsReservas.next()) {
         Timestamp h = rsReservas.getTimestamp("horario");
-        Object[] r = {
-            h,
-            rsReservas.getInt("qtd_pessoas"),
-            rsReservas.getInt("id_mesa"),
-            rsReservas.getString("status")
-        };
+          Object[] r = {
+             h,
+             rsReservas.getInt("qtd_pessoas"),
+             rsReservas.getInt("id_mesa"),
+             rsReservas.getString("status"),
+             rsReservas.getInt("id_reserva")   // NOVO: índice 4
+          };
         lista.add(r);
 
         String stat = (String) r[3];
@@ -152,6 +153,7 @@
 
                 <div class="next-reservation-actions">
                     <span class="status-pill <%= classeStatus(statusProx) %>"><%= esc(statusProx) %></span>
+                    <a href="ControleReserva?origem=editarMinha&id=<%= proxima[4] %>" class="chip-btn">Alterar</a>
                 </div>
             </div>
             <% } else { %>
@@ -197,7 +199,16 @@
                                 <td><%= r[1] %></td>
                                 <td>Mesa <%= r[2] %></td>
                                 <td><span class="status-pill <%= classeStatus(statusReserva) %>"><%= esc(statusReserva) %></span></td>
-                                <td><a href="#" class="chip-btn">Ver</a></td>
+                                <td>
+                                    <%
+                                        boolean podeAlterar = ("Pendente".equalsIgnoreCase(statusReserva)
+                                                || "Confirmada".equalsIgnoreCase(statusReserva))
+                                                && ((Timestamp) r[0]).getTime() >= agora;
+                                        if (podeAlterar) {
+                                    %>
+                                    <a href="ControleReserva?origem=editarMinha&id=<%= r[4] %>" class="chip-btn">Alterar</a>
+                                    <% } %>
+                                </td>
                             </tr>
                             <%
                                 }

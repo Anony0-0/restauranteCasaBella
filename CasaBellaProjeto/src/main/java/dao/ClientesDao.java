@@ -83,6 +83,21 @@ public class ClientesDao {
             con.close();
         }
     }
+
+    // Cliente trocando a própria senha. Retorna 1 se alterou, 0 se não achou o cliente.
+    public int alterarSenha(String email, String novaSenha)
+            throws SQLException, ClassNotFoundException {
+        Connection con = ConexaoBD.conectar();
+        try (PreparedStatement ps = con.prepareStatement(
+                "UPDATE clientes SET senha = ? WHERE email = ?")) {
+            ps.setString(1, novaSenha);
+            ps.setString(2, email);
+            return ps.executeUpdate();
+        } finally {
+            con.close();
+        }
+    }
+
     //Fazer listagem de TODOS clientes
     public ResultSet listarClientes() throws SQLException, ClassNotFoundException {
 

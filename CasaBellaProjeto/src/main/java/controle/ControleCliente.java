@@ -47,6 +47,10 @@ public class ControleCliente extends HttpServlet {
             excluirPeloPainel(request, response);
             return;
         }
+        if ("alterarSenha".equalsIgnoreCase(origem)) {
+            alterarSenha(request, response);
+            return;
+        }
 
         String mensagem;
 
@@ -150,6 +154,58 @@ public class ControleCliente extends HttpServlet {
             }
             request.setAttribute("cliente", dados);
             request.getRequestDispatcher("/areaCliente/editarCliente.jsp").forward(request, response);
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
+    }
+
+    // Cliente logado troca a própria senha (e-mail vem da sessão)
+    private void alterarSenha(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession sessao = request.getSession(false);
+        if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
+            response.sendRedirect("login.html");
+            return;
+        }
+
+        String email = (String) sessao.getAttribute("email");
+        String atual = request.getParameter("senhaAtual");
+        String nova = request.getParameter("novaSenha");
+        String confirma = request.getParameter("confirmarSenha");
+        String erro;
+
+        try {
+            ClientesDao dao = new ClientesDao();
+
+            if (atual == null || nova == null || confirma == null || atual.isEmpty()) {
+                erro = "Preencha todos os campos de senha.";
+            } else if (nova.length() < 6) {
+                erro = "A nova senha precisa ter ao menos 6 caracteres.";
+            } else if (!nova.equals(confirma)) {
+                erro = "A confirmação não confere com a nova senha.";
+            } else if (nova.equals(atual)) {
+                erro = "A nova senha precisa ser diferente da atual.";
+            } else if (dao.logarCliente(email, atual) == null) {
+                erro = "Senha atual incorreta.";
+            } else if (dao.alterarSenha(email, nova) == 1) {
+                sessao.setAttribute("aviso", "Senha alterada com sucesso.");
+                response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
+                return;
+            } else {
+                erro = "Não foi possível alterar a senha.";
+            }
+
+            // Com erro, reabre o formulário de edição mostrando a mensagem
+            String[] dados = dao.buscarDados(email);
+            if (dados == null) {
+                response.sendRedirect("login.html");
+                return;
+            }
+            request.setAttribute("cliente", dados);
+            request.setAttribute("erro", erro);
+            request.getRequestDispatcher("/areaCliente/editarCliente.jsp").forward(request, response);
+
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
             throw new ServletException(e);

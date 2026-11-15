@@ -20,10 +20,14 @@
     // O ControleCliente (origem=carregar) busca o cliente no banco e envia: {nome, email, telefone}
     // Se alguém abrir a página direto, pedimos ao servlet para buscar os dados.
     String[] cliente = (String[]) request.getAttribute("cliente");
-    if (cliente == null) {
-        response.sendRedirect(ctx + "/ControleCliente?origem=carregar");
-        return;
-    }
+       if (cliente == null) {
+           response.sendRedirect(ctx + "/ControleCliente?origem=carregar");
+           return;
+       }
+
+       // Mensagem de erro enviada pelo servlet (ex.: "Senha atual incorreta.")
+       String erro = (String) request.getAttribute("erro");
+   %>
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -31,8 +35,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editar meus dados — Casa Bella</title>
-    <meta name="description" content="Altere seus dados ou exclua sua conta na Casa Bella." />
-
+    <meta name="description" content="Altere seus dados na Casa Bella." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -129,24 +132,40 @@
                     </form>
                 </div>
 
-                <!-- ========== EXCLUIR CONTA ========== -->
-                <div class="edit-card is-danger">
-                    <h2>Excluir minha conta</h2>
-                    <p>Esta ação não pode ser desfeita. Para confirmar, digite a sua senha.</p>
+                <!-- ========== ALTERAR SENHA ========== -->
+                <div class="edit-card">
+                    <h2>Alterar senha</h2>
+                     <p>Informe a senha atual e escolha uma nova, com pelo menos 6 caracteres.</p>
 
-                    <form class="auth-form" action="<%= ctx %>/ControleCliente" method="post">
-                        <input type="hidden" name="origem" value="excluir" />
+                     <% if (erro != null) { %>
+                        <p role="alert" style="color: var(--color-gold-bright);"><%= esc(erro) %></p>
+                     <% } %>
 
-                        <div class="field">
-                            <label for="senhaConfirma">Senha</label>
-                            <input type="password" id="senhaConfirma" name="senha" placeholder="••••••••" autocomplete="current-password" required />
-                        </div>
+                     <form class="auth-form" action="<%= ctx %>/ControleCliente" method="post">
+                         <input type="hidden" name="origem" value="alterarSenha" />
+                         <input type="text" class="visually-hidden" value="<%= esc(cliente[1]) %>"
+                                autocomplete="username" readonly tabindex="-1" aria-hidden="true" />
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-danger">Excluir minha conta</button>
-                        </div>
-                    </form>
-                </div>
+                            <div class="field">
+                                <label for="senhaAtual">Senha atual</label>
+                                <input type="password" id="senhaAtual" name="senhaAtual" placeholder="••••••••" autocomplete="current-password" required />
+                            </div>
+
+                            <div class="field">
+                                <label for="novaSenha">Nova senha</label>
+                                <input type="password" id="novaSenha" name="novaSenha" placeholder="••••••••" autocomplete="new-password" minlength="6" required />
+                            </div>
+
+                            <div class="field">
+                                <label for="confirmarSenha">Confirmar nova senha</label>
+                                <input type="password" id="confirmarSenha" name="confirmarSenha" placeholder="••••••••" autocomplete="new-password" minlength="6" required />
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">Alterar senha</button>
+                            </div>
+                        </form>
+                    </div>
 
             </div>
 
