@@ -137,6 +137,15 @@ class ApiService {
     }
     return pedidoId;
   }
+    // VER UM PEDIDO (dados + itens)
+  static Future<Map<String, dynamic>> buscarPedido(int pedidoId) async {
+    final resposta = await _request(
+      'buscar pedido',
+      () => client.get(Uri.parse('$apiRoot/pedidos?id=$pedidoId')),
+    );
+    _validarResposta(resposta, 'buscar pedido');
+    return _decodificarObjeto(resposta, 'buscar pedido'); // {"pedido": {...}, "itens": [...]}
+  }
 
   // ADICIONAR ITEM AO PEDIDO
   static Future<void> adicionarItemPedido({
@@ -168,6 +177,37 @@ class ApiService {
 
     if (dados['ok'] != true) {
       throw const ApiException('Não foi possível adicionar o produto ao pedido.');
+    }
+  }
+
+    // REMOVER ITEM DO PEDIDO
+  static Future<void> removerItemPedido({
+    required int pedidoId,
+    required int itemId,
+  }) async {
+    if (pedidoId <= 0 || itemId <= 0) {
+      throw ArgumentError('Os dados do item do pedido são inválidos.');
+    }
+
+    final url = Uri.parse('$apiRoot/pedidos/itens/remover');
+
+    final resposta = await _request(
+      'remover item do pedido',
+      () => client.post(
+        url,
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'id_pedido': pedidoId.toString(),
+          'id_itens': itemId.toString(), // atenção: é "id_itens", como no servlet
+        },
+      ),
+    );
+
+    _validarResposta(resposta, 'remover item do pedido');
+    final dados = _decodificarObjeto(resposta, 'remover item do pedido');
+
+    if (dados['ok'] != true) {
+      throw const ApiException('Não foi possível remover o item do pedido.');
     }
   }
 
