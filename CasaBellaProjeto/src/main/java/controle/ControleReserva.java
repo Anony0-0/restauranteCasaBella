@@ -37,9 +37,15 @@ public class ControleReserva extends HttpServlet {
         } else if ("confirmarChegada".equalsIgnoreCase(origem) || "cancelar".equalsIgnoreCase(origem)) {
             statusPeloPainel(request, response, origem);
             return;
-        } else if ("atualizarPainel".equalsIgnoreCase(origem)) { // NOVO
+        } else if ("atualizarPainel".equalsIgnoreCase(origem)) {
             atualizarPeloPainel(request, response);
             return;
+        } else if ("atualizarMinha".equalsIgnoreCase(origem)) {
+        atualizarMinha(request, response);
+        return;
+        } else if ("cancelarMinha".equalsIgnoreCase(origem)) {
+        cancelarMinha(request, response);
+        return;
         }
 
         HttpSession sessao = request.getSession(false);
@@ -107,6 +113,9 @@ public class ControleReserva extends HttpServlet {
             listarMinhasReservas(request, response);
         } else if ("editar".equalsIgnoreCase(origem)) { // NOVO
             abrirEdicaoPeloPainel(request, response);
+        } else if ("editarMinha".equalsIgnoreCase(origem)) {
+            abrirEdicaoMinha(request, response);   // NOVO: cliente abre a própria reserva
+        } else if ("editar".equalsIgnoreCase(origem)) {
         } else {
             response.sendRedirect("reservas.jsp");
         }
@@ -281,6 +290,154 @@ public class ControleReserva extends HttpServlet {
         HttpSession sessao = request.getSession(false);
         // return sessao != null && "funcionario".equals(sessao.getAttribute("perfil"));
         return true; // TEMPORÁRIO: troque pela linha de cima quando o login da equipe gravar o perfil
+    }
+
+    // Id do cliente logado, ou null se não for cliente
+    private Integer clienteLogado(HttpServletRequest request) {
+        HttpSession sessao = request.getSession(false);
+        if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) return null;
+        return (Integer) sessao.getAttribute("id_cliente");
+    }
+
+    // Cliente abre o formulário da PRÓPRIA reserva
+    private void abrirEdicaoMinha(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        Integer idCliente = clienteLogado(request);
+        if (idCliente == null) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id").trim());
+            ReservasDao dao = new ReservasDao();
+
+            // Impede abrir a reserva de outra pessoa trocando o id na URL
+            if (!dao.reservaDoCliente(id, idCliente)) {
+                request.getSession().setAttribute("aviso", "Reserva não encontrada.");
+                response.sendRedirect("ControleReserva?origem=listarMinhas");
+                return;
+            }
+
+            String[] reserva = dao.buscarParaEdicao(id);
+            String status = reserva[5];
+            if (!"pendente".equalsIgnoreCase(status) && !"confirmada".equalsIgnoreCase(status)) {
+                request.getSession().setAttribute("aviso", "Só reservas pendentes ou confirmadas podem ser alteradas.");
+                response.sendRedirect("ControleReserva?origem=listarMinhas");
+                return;
+            }
+
+            request.setAttribute("reserva", reserva);
+            request.getRequestDispatcher("/areaCliente/editarReserva.jsp").forward(request, response);
+
+        } catch (NumberFormatException | NullPointerException e) {
+            response.sendRedirect("ControleReserva?origem=listarMinhas");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            throw new ServletException(e);
+        }
+    }
+
+    // Cliente salva a alteração da PRÓPRIA reserva
+    private void atualizarMinha(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        Integer idCliente = clienteLogado(request);
+        if (idCliente == null) {
+            response.sendRedirect("login.html");
+            return;
+        }
+        try {
+            int id = Integer.parseInt(request.getParameter("id_reserva").trim());
+            LocalDate data = LocalDate.parse(request.getParameter("data"));
+            LocalTime hora = LocalTime.parse(request.getParameter("hora"));
+            int pessoas = Integer.parseInt(request.getParameter("pessoas"));
+            LocalDateTime horario = LocalDateTime.of(data, hora);
+
+            ReservasDao dao = new ReservasDao();
+
+            if (!dao.reservaDoCliente(id, idCliente)) {
+                request.getSession().setAttribute("aviso", "Reserva não encontrada.");
+                response.sendRedirect("ControleReserva?origem=listarMinhas");
+                return;
+            }
+
+            String[] atual = dao.buscarParaEdicao(id);
+
+            // Só exige horário futuro se a data/hora foram mudadas
+            boolean mudouHorario = !(data.toString().equals(atual[2])
+                    && hora.equals(LocalTime.parse(atual[3])));
+            String erro = validar(horario, pessoas, mudouHorario);
+
+            if (erro == null) {
+                String status = atual[5];
+
+                if (!"pendente".equalsIgnoreCase(status) && !"confirmada".equalsIgnoreCase(status)) {
+                    erro = "Só reservas pendentes ou confirmadas podem ser alteradas.";
+                } else if (dao.reservaTemPedido(id)) {
+                    erro = "Esta reserva já tem pedido e não pode ser alterada.";
+                } else {
+                    int mesa = dao.escolherMesa(id, pessoas, Timestamp.valueOf(horario), dao.mesaDaReserva(id));
+
+                    if (mesa == 0) {
+                        erro = "Não há mesa disponível para esse horário e quantidade de pessoas.";
+                    } else {
+                        dao.atualizarReserva(id, Timestamp.valueOf(horario), pessoas, mesa);
+                        request.getSession().setAttribute("aviso", "Reserva alterada com sucesso.");
+                        response.sendRedirect("ControleReserva?origem=listarMinhas");
+                        return;
+                    }
+                }
+            }
+
+            // Com erro, volta para o formulário (os campos continuam como foram digitados)
+            request.setAttribute("reserva", atual);
+            request.setAttribute("erro", erro);
+            request.getRequestDispatcher("/areaCliente/editarReserva.jsp").forward(request, response);
+
+        } catch (DateTimeParseException | NumberFormatException | NullPointerException e) {
+            request.getSession().setAttribute("aviso", "Dados da reserva inválidos.");
+            response.sendRedirect("ControleReserva?origem=listarMinhas");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("aviso", "Não foi possível alterar a reserva agora.");
+            response.sendRedirect("ControleReserva?origem=listarMinhas");
+        }
+    }
+
+    // Cliente cancela a PRÓPRIA reserva (fica com status "Cancelada")
+    private void cancelarMinha(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        Integer idCliente = clienteLogado(request);
+        if (idCliente == null) {
+            response.sendRedirect("login.html");
+            return;
+        }
+
+        String aviso;
+        try {
+            int id = Integer.parseInt(request.getParameter("id_reserva").trim());
+            ReservasDao dao = new ReservasDao();
+
+            if (!dao.reservaDoCliente(id, idCliente)) {
+                aviso = "Reserva não encontrada.";
+            } else {
+                int resultado = dao.cancelar(id);
+                if (resultado == 1) {
+                    aviso = "Reserva cancelada com sucesso.";
+                } else if (resultado == -1) {
+                    aviso = "Não é possível cancelar: já existe pedido para essa reserva.";
+                } else {
+                    aviso = "Essa reserva não pode ser cancelada.";
+                }
+            }
+        } catch (NumberFormatException | NullPointerException e) {
+            aviso = "Reserva inválida.";
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            aviso = "Não foi possível cancelar a reserva agora.";
+        }
+
+        request.getSession().setAttribute("aviso", aviso);
+        response.sendRedirect("ControleReserva?origem=listarMinhas");
     }
 
     private String validar(LocalDateTime horario, int pessoas) {
