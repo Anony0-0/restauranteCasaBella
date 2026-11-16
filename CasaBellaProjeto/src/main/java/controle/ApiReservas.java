@@ -17,7 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-@WebServlet(name = "ApiReservas", urlPatterns = {"/api/reservas"})
+@WebServlet(name = "ApiReservas", urlPatterns = {"/api/reservas","/api/reservas/*"})
 public class ApiReservas extends HttpServlet {
 
     @Override
@@ -73,6 +73,86 @@ public class ApiReservas extends HttpServlet {
             } catch (SQLException ignorado) {
             }
         }
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String acao = request.getParameter("acao");
+        String idParam = request.getParameter("id");
+
+        if (acao == null || idParam == null) {
+            responder(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Parâmetros 'acao' e 'id' são obrigatórios.", null);
+            return;
+        }
+
+        int idReserva;
+        try {
+            idReserva = Integer.parseInt(idParam.trim());
+        } catch (NumberFormatException e) {
+            responder(response, HttpServletResponse.SC_BAD_REQUEST, false, "ID de reserva inválido.", null);
+            return;
+        }
+
+        try {
+            ReservasDao dao = new ReservasDao();
+
+            switch (acao.trim().toLowerCase()) {
+                case "confirmar": {
+                    int linhas = dao.confirmarChegada(idReserva);
+                    if (linhas > 0) {
+                        responder(response, HttpServletResponse.SC_OK, true,
+                                "Chegada confirmada com sucesso.", "Confirmada");
+                    } else {
+                        // Não existe ou não estava Pendente
+                        responder(response, HttpServletResponse.SC_CONFLICT, false,
+                                "Não foi possível confirmar: a reserva não existe ou não está pendente.", null);
+                    }
+                    break;
+                }
+
+                case "cancelar": {
+                    int resultado = dao.cancelar(idReserva);
+                    if (resultado > 0) {
+                        responder(response, HttpServletResponse.SC_OK, true,
+                                "Reserva cancelada com sucesso.", "Cancelada");
+                    } else if (resultado == -1) {
+                        responder(response, HttpServletResponse.SC_CONFLICT, false,
+                                "Não é possível cancelar: já existe pedido ligado a esta reserva.", null);
+                    } else {
+                        responder(response, HttpServletResponse.SC_CONFLICT, false,
+                                "Não foi possível cancelar: a reserva não existe ou já foi cancelada/concluída.", null);
+                    }
+                    break;
+                }
+
+                default:
+                    responder(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                            "Ação inválida. Use 'confirmar' ou 'cancelar'.", null);
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            responder(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
+                    "Erro interno ao processar a reserva.", null);
+        }
+    }
+
+    // Resposta JSON padronizada: {"sucesso":true,"mensagem":"...","status":"Confirmada"}
+    private void responder(HttpServletResponse response, int httpStatus,
+                           boolean sucesso, String mensagem, String novoStatus) throws IOException {
+        JsonObjectBuilder json = Json.createObjectBuilder()
+                .add("sucesso", sucesso)
+                .add("mensagem", mensagem);
+        if (novoStatus != null) {
+            json.add("status", novoStatus);
+        }
+
+        response.setStatus(httpStatus);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(json.build().toString());
     }
 
     private String nuloSeVazio(String s) {
