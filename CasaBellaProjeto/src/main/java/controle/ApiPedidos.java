@@ -28,7 +28,7 @@ import java.sql.ResultSetMetaData;
 import java.io.IOException;
 import java.sql.SQLException;
 
-@WebServlet(name = "ApiPedidos", urlPatterns = {"/api/pedidos", "/api/pedidos/itens"})
+@WebServlet(name = "ApiPedidos", urlPatterns = {"/api/pedidos", "/api/pedidos/itens" , "/api/pedidos/itens/remover" , "/api/pedidos/status"})
 public class ApiPedidos extends HttpServlet {
 
     @Override
@@ -41,6 +41,8 @@ public class ApiPedidos extends HttpServlet {
 
         if (caminho.endsWith("/itens/remover")) {
             removerItem(request, response);
+        } else if (caminho.endsWith("/status")) {
+            atualizarStatus(request, response);
         } else if (caminho.endsWith("/itens")) {
             adicionarItem(request, response);
         } else {
@@ -138,7 +140,6 @@ public class ApiPedidos extends HttpServlet {
         }
     }
 
-    // GET /api/pedidos  ->  [ {...}, {...} ]
     private void listarPedidos(HttpServletResponse response) throws IOException {
         try {
             ResultSet rs = new PedidosDao().listarPedidos();
@@ -150,7 +151,6 @@ public class ApiPedidos extends HttpServlet {
         }
     }
 
-    // GET /api/pedidos?id=12  ->  {"pedido": {...}, "itens": [...]}
     private void verPedido(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         try {
@@ -211,6 +211,36 @@ public class ApiPedidos extends HttpServlet {
             responderErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro ao remover item.");
         }
     }
+
+    private void atualizarStatus(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        try {
+            Integer idPedido = lerInteiroOpcional(request.getParameter("id_pedido"));
+            String status = request.getParameter("status");
+
+            if (idPedido == null || status == null
+                    || !(status.equals("Concluido") || status.equals("cancelado"))) {
+                responderErro(response, HttpServletResponse.SC_BAD_REQUEST, "Valores inválidos.");
+                return;
+            }
+
+            int linhas = new PedidosDao().atualizarStatus(idPedido, status);
+            if (linhas == 0) {
+                responderErro(response, HttpServletResponse.SC_CONFLICT,
+                        "O pedido já foi fechado ou não existe.");
+                return;
+            }
+            responderJson(response, HttpServletResponse.SC_OK,
+                    Json.createObjectBuilder().add("ok", true).build().toString());
+
+        } catch (NumberFormatException e) {
+            responderErro(response, HttpServletResponse.SC_BAD_REQUEST, "Valores inválidos.");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+            responderErro(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erro ao atualizar status.");
+        }
+    }
+
     private JsonArray resultSetParaJson(ResultSet rs) throws SQLException {
         JsonArrayBuilder lista = Json.createArrayBuilder();
         ResultSetMetaData md = rs.getMetaData();
