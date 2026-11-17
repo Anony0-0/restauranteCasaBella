@@ -70,7 +70,7 @@ public class ControleLogin extends HttpServlet {
         if ("sair".equals(request.getParameter("acao"))) {
             HttpSession s = request.getSession(false);
             if (s != null) s.invalidate();
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 
@@ -85,7 +85,7 @@ public class ControleLogin extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
             }
         } else {
-            response.sendRedirect(request.getContextPath() + "/login.html");
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
         }
     }
 

@@ -79,9 +79,32 @@ public class FuncionariosDao {
         rs = st.executeQuery();
 
         return rs;
-
-
     }
+
+
+    public ResultSet buscarFuncionarios(String busca)
+            throws SQLException, ClassNotFoundException {
+
+        conectar();
+
+        String sql = "SELECT * FROM funcionarios " +
+                "WHERE nome LIKE ? " +
+                "OR cargo LIKE ? " +
+                "OR email LIKE ?";
+
+        st = conectado.prepareStatement(sql);
+
+        String filtro = "%" + busca + "%";
+
+        st.setString(1, filtro);
+        st.setString(2, filtro);
+        st.setString(3, filtro);
+
+        rs = st.executeQuery();
+
+        return rs;
+    }
+
 
     public String[] buscarFuncionario(int idFunc) throws ClassNotFoundException, SQLException {
         Connection con = ConexaoBD.conectar();

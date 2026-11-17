@@ -26,6 +26,31 @@ public class ProdutosDao {
 
     }
 
+
+    public ResultSet buscarProdutos(String busca)
+            throws SQLException, ClassNotFoundException {
+
+        conectar();
+
+        String sql = "SELECT * FROM produtos " +
+                "WHERE nome LIKE ? " +
+                "OR categoria LIKE ? " +
+                "OR descricao LIKE ?";
+
+        st = conectado.prepareStatement(sql);
+
+        String filtro = "%" + busca + "%";
+
+        st.setString(1, filtro);
+        st.setString(2, filtro);
+        st.setString(3, filtro);
+
+        rs = st.executeQuery();
+
+        return rs;
+    }
+
+
     public ResultSet listarDisponiveis() throws SQLException, ClassNotFoundException {
         Connection con = ConexaoBD.conectar();
 

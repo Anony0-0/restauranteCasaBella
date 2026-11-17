@@ -45,7 +45,7 @@ public class ControleFuncionario extends HttpServlet {
 
         } else if ("editarFuncionario".equalsIgnoreCase(origem)) {
             if (!ehFuncionario(request)) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
             try {
@@ -125,7 +125,7 @@ public class ControleFuncionario extends HttpServlet {
             // ---------- ALTERAR ----------
         } else if ("alterarFuncionario".equalsIgnoreCase(origem)) {
             if (!ehFuncionario(request)) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
             try {
@@ -151,7 +151,7 @@ public class ControleFuncionario extends HttpServlet {
             // ---------- EXCLUIR ----------
         } else if ("excluirFuncionario".equalsIgnoreCase(origem)) {
             if (!ehFuncionario(request)) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
             try {

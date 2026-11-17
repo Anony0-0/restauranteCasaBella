@@ -158,23 +158,34 @@
                         <span>Cancelados</span>
                     </div>
 
-                    <div class="admin-filter-bar">
-                        <div class="admin-filter-field">
-                            <label for="filtro-cliente">Cliente</label>
-                            <input type="text" id="filtro-cliente" data-filtro data-col="1" placeholder="Buscar por nome" />                        </div>
 
-                        <div class="admin-filter-field">
-                            <label for="filtro-mesa">Mesa</label>
-                            <select id="filtro-mesa" data-filtro data-col="3">
-                                <option>Todas</option>
-                            </select>
+                <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
+
+                    <input type="hidden" name="aba" value="pedidos" />
+
+                    <div class="admin-filter-field">
+                        <label for="filtro-cliente">Cliente</label>
+                        <input
+                        type="text"
+                        id="filtro-cliente"
+                        name="busca"
+                        placeholder="Buscar por nome"
+                        value="<%= request.getParameter("busca") == null ? "" : esc(request.getParameter("busca")) %>"
+                        />
                         </div>
 
-                        <div class="admin-filter-actions">
-                            <a href="#" class="btn btn-outline">Buscar</a>
+                        <div class="admin-filter-field">
+                        <label for="filtro-mesa">Mesa</label>
+                        <select id="filtro-mesa" name="mesa">
+                        <option value="">Todas</option>
+                        </select>
                         </div>
+
+                    <div class="admin-filter-actions">
+                    <button type="submit" class="btn btn-outline">Buscar</button>
                     </div>
 
+                    </form>
                     <div class="admin-table-wrap">
                         <table class="admin-table">
 
@@ -285,12 +296,27 @@
                     <a href="cadastroCliente.jsp" class="btn btn-primary">Novo cliente</a>
                 </div>
 
-                <div class="admin-filter-bar">
-                    <div class="admin-filter-field">
-                        <label for="busca-clientes">Buscar</label>
-                        <input type="text" id="busca-clientes" data-filtro placeholder="Nome, e-mail ou telefone" />
-                    </div>
-                </div>
+               <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
+
+                   <input type="hidden" name="aba" value="clientes" />
+
+                   <div class="admin-filter-field">
+                       <label for="busca-clientes">Buscar</label>
+
+                       <input
+                           type="text"
+                           id="busca-clientes"
+                           name="busca"
+                           placeholder="Nome, e-mail ou telefone"
+                           value="<%= request.getParameter("busca") == null ? "" : esc(request.getParameter("busca")) %>"
+                       />
+                   </div>
+
+                   <div class="admin-filter-actions">
+                       <button type="submit" class="btn btn-outline">Buscar</button>
+                   </div>
+
+               </form>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
@@ -344,12 +370,26 @@
                 <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
                 <% } %>
 
-                <div class="admin-filter-bar">
+                <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
+
+                    <input type="hidden" name="aba" value="reservas" />
+
                     <div class="admin-filter-field">
                         <label for="busca-reservas">Buscar</label>
-                        <input type="text" id="busca-reservas" data-filtro placeholder="Cliente, contato ou mesa" />
+                        <input
+                            type="text"
+                            id="busca-reservas"
+                            name="busca"
+                            placeholder="Cliente, contato ou mesa"
+                            value="<%= request.getParameter("busca") == null ? "" : esc(request.getParameter("busca")) %>"
+                        />
                     </div>
-                </div>
+
+                    <div class="admin-filter-actions">
+                        <button type="submit" class="btn btn-outline">Buscar</button>
+                    </div>
+
+                </form>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
@@ -448,12 +488,27 @@
                 <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
                 <% } %>
 
-                <div class="admin-filter-bar">
+                <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
+
+                    <input type="hidden" name="aba" value="produtos" />
+
                     <div class="admin-filter-field">
                         <label for="busca-produtos">Buscar</label>
-                        <input type="text" id="busca-produtos" data-filtro placeholder="Nome, categoria ou descrição" />
+
+                        <input
+                            type="text"
+                            id="busca-produtos"
+                            name="busca"
+                            placeholder="Nome, categoria ou descrição"
+                            value="<%= request.getParameter("busca") == null ? "" : esc(request.getParameter("busca")) %>"
+                        />
                     </div>
-                </div>
+
+                    <div class="admin-filter-actions">
+                        <button type="submit" class="btn btn-outline">Buscar</button>
+                    </div>
+
+                </form>
 
                 <div class="admin-table-wrap">
                     <table class="admin-table">
@@ -511,12 +566,26 @@
                     <a href="cadastroFuncionario.jsp" class="btn btn-primary">Novo funcionário</a>
                 </div>
 
-                <div class="admin-filter-bar">
+                <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
+
+                    <input type="hidden" name="aba" value="funcionarios" />
+
                     <div class="admin-filter-field">
                         <label for="busca-funcionarios">Buscar</label>
-                        <input type="text" id="busca-funcionarios" data-filtro placeholder="Nome, cargo ou e-mail" />
+                        <input
+                            type="text"
+                            id="busca-funcionarios"
+                            name="busca"
+                            placeholder="Nome, cargo ou e-mail"
+                            value="<%= request.getParameter("busca") == null ? "" : esc(request.getParameter("busca")) %>"
+                        />
                     </div>
-                </div>
+
+                    <div class="admin-filter-actions">
+                        <button type="submit" class="btn btn-outline">Buscar</button>
+                    </div>
+
+                </form>
 
                 <div class="admin-table-wrap">
 
@@ -576,63 +645,5 @@
     </main>
 
 </div>
-<script>
-    function normalizar(t) {
-        return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    }
-
-    document.querySelectorAll(".admin-panel").forEach(function (painel) {
-        var campos = painel.querySelectorAll("[data-filtro]");
-        if (!campos.length) return;                 // painel sem filtro: ignora
-        var linhas = painel.querySelectorAll("tbody tr");
-
-        // Preenche o select (Mesa) com as mesas que existem na tabela
-        painel.querySelectorAll("select[data-filtro]").forEach(function (sel) {
-            var vistos = {};
-            linhas.forEach(function (tr) {
-                var td = tr.querySelectorAll("td")[sel.dataset.col];
-                if (!td) return;
-                var v = td.textContent.trim();
-                if (v && v !== "—" && !vistos[v]) {
-                    vistos[v] = true;
-                    var op = document.createElement("option");
-                    op.textContent = v;
-                    sel.appendChild(op);
-                }
-            });
-        });
-
-        function aplicar() {
-            linhas.forEach(function (tr) {
-                var celulas = tr.querySelectorAll("td");
-                if (celulas.length < 2) return;     // linha "Nenhum registro"
-                var mostrar = true;
-
-                campos.forEach(function (campo) {
-                    var termo = normalizar(campo.value.trim());
-                    if (termo === "" || termo === "todas") return;
-
-                    var texto = campo.dataset.col !== undefined
-                        ? celulas[campo.dataset.col].textContent
-                        : Array.prototype.slice.call(celulas, 0, -1)
-                              .map(function (td) { return td.textContent; }).join(" ");
-                    texto = normalizar(texto.trim());
-
-                    var bate = campo.tagName === "SELECT"
-                        ? texto === termo               // mesa: tem que ser igual
-                        : texto.indexOf(termo) !== -1;  // texto: basta conter
-                    if (!bate) mostrar = false;
-                });
-
-                tr.style.display = mostrar ? "" : "none";
-            });
-        }
-
-        campos.forEach(function (campo) {
-            campo.addEventListener("input", aplicar);
-            campo.addEventListener("change", aplicar);
-        });
-    });
-</script>
 </body>
 </html>

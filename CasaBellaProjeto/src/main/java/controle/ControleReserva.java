@@ -50,7 +50,7 @@ public class ControleReserva extends HttpServlet {
 
         HttpSession sessao = request.getSession(false);
         if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 
@@ -127,7 +127,7 @@ public class ControleReserva extends HttpServlet {
         System.out.println(">>> listarMinhasReservas foi chamado");
         HttpSession sessao = request.getSession(false);
         if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 
@@ -151,7 +151,7 @@ public class ControleReserva extends HttpServlet {
     private void cadastrarPeloPainel(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 
@@ -194,7 +194,7 @@ public class ControleReserva extends HttpServlet {
     private void abrirEdicaoPeloPainel(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
@@ -226,7 +226,7 @@ public class ControleReserva extends HttpServlet {
     private void atualizarPeloPainel(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
@@ -304,7 +304,7 @@ public class ControleReserva extends HttpServlet {
             throws ServletException, IOException {
         Integer idCliente = clienteLogado(request);
         if (idCliente == null) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
@@ -342,7 +342,7 @@ public class ControleReserva extends HttpServlet {
             throws ServletException, IOException {
         Integer idCliente = clienteLogado(request);
         if (idCliente == null) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
@@ -408,7 +408,7 @@ public class ControleReserva extends HttpServlet {
             throws ServletException, IOException {
         Integer idCliente = clienteLogado(request);
         if (idCliente == null) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 
@@ -470,7 +470,7 @@ public class ControleReserva extends HttpServlet {
     private void statusPeloPainel(HttpServletRequest request, HttpServletResponse response, String acao)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 

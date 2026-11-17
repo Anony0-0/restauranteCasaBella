@@ -27,7 +27,34 @@ public class PedidosDao {
         rs = st.executeQuery();
 
         return rs;
+    }
 
+
+    // FILTRAR PEDIDOS POR CLIENTE E/OU MESA
+    public ResultSet buscarPedidos(String busca, String mesa)
+            throws SQLException, ClassNotFoundException {
+
+        conectar();
+
+        String sql = "SELECT p.id_pedido, p.id_cliente, c.nome AS cliente, " +
+                "p.id_reserva, p.id_mesa, p.data_pedido, p.status, p.valor_total " +
+                "FROM pedidos p " +
+                "LEFT JOIN clientes c ON c.id_cliente = p.id_cliente " +
+                "WHERE c.nome LIKE ? " +
+                "AND (? = '' OR p.id_mesa = ?) " +
+                "ORDER BY p.data_pedido DESC";
+
+        st = conectado.prepareStatement(sql);
+
+        String filtro = "%" + busca + "%";
+
+        st.setString(1, filtro);
+        st.setString(2, mesa);
+        st.setString(3, mesa);
+
+        rs = st.executeQuery();
+
+        return rs;
     }
 
     // Abre ou cria o pedido de uma reserva confirmada.

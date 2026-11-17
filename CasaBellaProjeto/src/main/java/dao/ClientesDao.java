@@ -108,6 +108,28 @@ public class ClientesDao {
         return rs;
     }
 
+    public ResultSet buscarClientes(String busca)
+            throws SQLException, ClassNotFoundException {
+
+        conectar();
+
+        String sql = "SELECT id_cliente, nome, email, telefone FROM clientes " +
+                "WHERE nome LIKE ? OR email LIKE ? OR telefone LIKE ? " +
+                "ORDER BY id_cliente DESC";
+
+        st = conectado.prepareStatement(sql);
+
+        String filtro = "%" + busca + "%";
+
+        st.setString(1, filtro);
+        st.setString(2, filtro);
+        st.setString(3, filtro);
+
+        rs = st.executeQuery();
+
+        return rs;
+    }
+
     // Busca os dados de um cliente: {id, nome, email, telefone}. Retorna null se não existir.
     public String[] buscarPorId(int id) throws SQLException, ClassNotFoundException {
         Connection con = ConexaoBD.conectar();

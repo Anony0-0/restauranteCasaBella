@@ -74,7 +74,7 @@ public class ControleCliente extends HttpServlet {
             // Só cliente logado pode excluir. getSession(false) não cria sessão nova.
             HttpSession sessao = request.getSession(false);
             if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
 
@@ -103,7 +103,7 @@ public class ControleCliente extends HttpServlet {
         } else if ("alterar".equalsIgnoreCase(origem)) {
             HttpSession sessao = request.getSession(false);
             if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
 
@@ -142,14 +142,14 @@ public class ControleCliente extends HttpServlet {
             throws ServletException, IOException {
         HttpSession sessao = request.getSession(false);
         if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
             String email = (String) sessao.getAttribute("email");
             String[] dados = new ClientesDao().buscarDados(email); // {nome, email, telefone}
             if (dados == null) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
             request.setAttribute("cliente", dados);
@@ -165,7 +165,7 @@ public class ControleCliente extends HttpServlet {
             throws ServletException, IOException {
         HttpSession sessao = request.getSession(false);
         if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
 
@@ -199,7 +199,7 @@ public class ControleCliente extends HttpServlet {
             // Com erro, reabre o formulário de edição mostrando a mensagem
             String[] dados = dao.buscarDados(email);
             if (dados == null) {
-                response.sendRedirect("login.html");
+                response.sendRedirect("login.jsp");
                 return;
             }
             request.setAttribute("cliente", dados);
@@ -217,7 +217,7 @@ public class ControleCliente extends HttpServlet {
     private void abrirEdicao(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
@@ -241,7 +241,7 @@ public class ControleCliente extends HttpServlet {
     private void atualizar(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {
@@ -301,7 +301,7 @@ public class ControleCliente extends HttpServlet {
     private void excluirPeloPainel(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
-            response.sendRedirect("login.html");
+            response.sendRedirect("login.jsp");
             return;
         }
         try {

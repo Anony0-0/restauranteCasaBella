@@ -15,59 +15,88 @@ import java.sql.SQLException;
 
 public class PainelGerenciamento extends HttpServlet {
 
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         try {
+            // 1. Recebe os parâmetros enviados pelos formulários
+            String aba = request.getParameter("aba");
+            String busca = request.getParameter("busca");
+            String mesa = request.getParameter("mesa");
 
-            // PEDIDOS
+            // Trata parâmetros que não foram enviados
+            if (aba == null || aba.isEmpty()) {
+                aba = "pedidos";
+            }
+
+            if (busca == null) {
+                busca = "";
+            }
+
+            if (mesa == null) {
+                mesa = "";
+            }
+
+            busca = busca.trim();
+
+            // 2. Guarda os valores para a JSP
+            request.setAttribute("aba", aba);
+            request.setAttribute("busca", busca);
+            request.setAttribute("mesa", mesa);
+
+            // 3. Carrega os pedidos
             PedidosDao pedidosDao = new PedidosDao();
-            ResultSet pedidos = pedidosDao.listarPedidos();
 
-            request.setAttribute("pedidos", pedidos);
+            if ("pedidos".equals(aba) && (!busca.isEmpty() || !mesa.isEmpty())) {
+                request.setAttribute("pedidos", pedidosDao.buscarPedidos(busca, mesa));
+            } else {
+                request.setAttribute("pedidos", pedidosDao.listarPedidos());
+            }
 
-
-            // FUNCIONÁRIOS
+            // 4. Carrega os funcionários
             FuncionariosDao funcionariosDao = new FuncionariosDao();
-            ResultSet funcionarios = funcionariosDao.listarFuncionarios();
 
-            request.setAttribute("funcionarios", funcionarios);
+            if ("funcionarios".equals(aba) && !busca.isEmpty()) {
+                request.setAttribute("funcionarios", funcionariosDao.buscarFuncionarios(busca));
+            } else {
+                request.setAttribute("funcionarios", funcionariosDao.listarFuncionarios());
+            }
 
-
-            // CLIENTES
+            // 5. Carrega os clientes
             ClientesDao clientesDao = new ClientesDao();
-            ResultSet clientes = clientesDao.listarClientes();
 
-            request.setAttribute("clientes", clientes);
+            if ("clientes".equals(aba) && !busca.isEmpty()) {
+                request.setAttribute("clientes", clientesDao.buscarClientes(busca));
+            } else {
+                request.setAttribute("clientes", clientesDao.listarClientes());
+            }
 
-
-            // RESERVAS
+            // 6. Carrega as reservas
             ReservasDao reservasDao = new ReservasDao();
-            ResultSet reservas = reservasDao.listarReservas();
 
-            request.setAttribute("reservas", reservas);
+            if ("reservas".equals(aba) && !busca.isEmpty()) {
+                request.setAttribute("reservas", reservasDao.buscarReservas(busca));
+            } else {
+                request.setAttribute("reservas", reservasDao.listarReservas());
+            }
 
-
-            // PRODUTOS
+            // 7. Carrega os produtos
             ProdutosDao produtosDao = new ProdutosDao();
-            ResultSet produtos = produtosDao.listarProdutos();
 
-            request.setAttribute("produtos", produtos);
+            if ("produtos".equals(aba) && !busca.isEmpty()) {
+                request.setAttribute("produtos", produtosDao.buscarProdutos(busca));
+            } else {
+                request.setAttribute("produtos", produtosDao.listarProdutos());
+            }
 
-
-            // ENVIAR TODOS OS DADOS PARA A JSP
-            request.getRequestDispatcher("/gerenciamento.jsp")
-                    .forward(request, response);
+            // 8. Encaminha para a página
+            request.getRequestDispatcher("/gerenciamento.jsp").forward(request, response);
 
         } catch (ClassNotFoundException | SQLException e) {
-
-            e.printStackTrace();
-
-            throw new ServletException(
-                    "Erro ao carregar os dados do painel.",
-                    e
-            );
+            throw new ServletException("Erro ao carregar o painel de gerenciamento.", e);
         }
-
     }
 }
+
