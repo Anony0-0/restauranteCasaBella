@@ -23,6 +23,16 @@ public class ControleLogin extends HttpServlet {
         String email = request.getParameter("email");
         String senha = request.getParameter("senha");
         String mensagem;
+        String mostrar = request.getParameter("mostrar");
+
+        if (mostrar != null) {
+            request.setAttribute("emailDigitado", email);
+            request.setAttribute("senhaDigitada", senha);
+            request.setAttribute("mostrarSenha", "sim".equals(mostrar));
+
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
 
         try {
             // 1) Procura primeiro na tabela de funcionários
