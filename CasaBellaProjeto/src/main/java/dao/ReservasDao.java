@@ -104,7 +104,10 @@ public class ReservasDao {
                 "r.horario, " +
                 "r.qtd_pessoas, " +
                 "r.id_mesa, " +
-                "r.status " +
+                "r.status, " +
+                "(SELECT p.status FROM pedidos p " +
+                "  WHERE p.id_reserva = r.id_reserva AND p.status <> 'cancelado' " +
+                "  ORDER BY p.id_pedido DESC LIMIT 1) AS status_pedido " +
                 "FROM reservas r " +
                 "LEFT JOIN clientes c ON c.id_cliente = r.id_cliente " +
                 "ORDER BY r.horario DESC";
@@ -115,44 +118,6 @@ public class ReservasDao {
 
         return rs;
     }
-
-
-    public ResultSet buscarReservas(String busca)
-            throws SQLException, ClassNotFoundException {
-
-        conectar();
-
-        String sql = "SELECT " +
-                "r.id_reserva, " +
-                "c.nome AS cliente, " +
-                "r.email, " +
-                "r.telefone, " +
-                "r.horario, " +
-                "r.qtd_pessoas, " +
-                "r.id_mesa, " +
-                "r.status " +
-                "FROM reservas r " +
-                "LEFT JOIN clientes c ON c.id_cliente = r.id_cliente " +
-                "WHERE c.nome LIKE ? " +
-                "OR r.email LIKE ? " +
-                "OR r.telefone LIKE ? " +
-                "OR CAST(r.id_mesa AS CHAR) LIKE ? " +
-                "ORDER BY r.horario DESC";
-
-        st = conectado.prepareStatement(sql);
-
-        String filtro = "%" + busca + "%";
-
-        st.setString(1, filtro);
-        st.setString(2, filtro);
-        st.setString(3, filtro);
-        st.setString(4, filtro);
-
-        rs = st.executeQuery();
-
-        return rs;
-    }
-
 
 
     public ResultSet listarReservasPorCliente(int idCliente) throws SQLException, ClassNotFoundException {
@@ -211,19 +176,6 @@ public class ReservasDao {
         boolean tem = rs.next();
         conectado.close();
         return tem;
-    }
-
-    // A reserva existe e é deste cliente?
-    public boolean reservaDoCliente(int idReserva, int idCliente) throws SQLException, ClassNotFoundException {
-        conectar();
-        st = conectado.prepareStatement(
-                "SELECT 1 FROM reservas WHERE id_reserva = ? AND id_cliente = ?");
-        st.setInt(1, idReserva);
-        st.setInt(2, idCliente);
-        rs = st.executeQuery();
-        boolean dono = rs.next();
-        conectado.close();
-        return dono;
     }
 
     // Mesa com capacidade e sem conflito (ignorando esta própria reserva).
