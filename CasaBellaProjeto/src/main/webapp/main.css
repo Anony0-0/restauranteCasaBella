@@ -1748,3 +1748,41 @@ section {
 .admin-row-actions form {
     margin: 0;
 }
+.password-wrap {
+    position: relative;
+}
+
+.password-wrap input {
+    width: 100%;
+    padding-right: 3rem;
+}
+
+.toggle-senha {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    color: var(--color-cream-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.toggle-senha:hover {
+    color: var(--color-gold-bright);
+}
+
+.toggle-senha svg {
+    width: 20px;
+    height: 20px;
+}
+
+.toggle-senha[aria-pressed="true"] .risco {
+    display: none;
+}

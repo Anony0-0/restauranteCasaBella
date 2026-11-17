@@ -74,7 +74,7 @@ public class ControleLogin extends HttpServlet {
             return;
         }
 
-        HttpSession sessao = request.getSession(false); // false = não cria sessão nova
+        HttpSession sessao = request.getSession(false);
 
         if (sessao != null && sessao.getAttribute("perfil") != null) {
             String perfil = (String) sessao.getAttribute("perfil");
@@ -82,11 +82,11 @@ public class ControleLogin extends HttpServlet {
             if ("funcionario".equals(perfil)) {
                 response.sendRedirect(request.getContextPath() + "/PainelGerenciamento");
             } else {
-                response.sendRedirect("areaCliente.jsp");
+                response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
             }
-        }  else {
-        response.sendRedirect(request.getContextPath() + "/ControleReserva?origem=listarMinhas");
-                }
+        } else {
+            response.sendRedirect(request.getContextPath() + "/login.html");
+        }
     }
 
     private void guardarLogin(HttpServletRequest request, String perfil, String nome, String email) {

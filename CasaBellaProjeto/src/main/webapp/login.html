@@ -39,8 +39,7 @@
                     <li><a href="index.html#contato">Contato</a></li>
                 </ul>
             </nav>
-            <a href="ControleLogin" class="avatar-button" aria-label="Minha conta">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <a href="ControleReserva?origem=listarMinhas" class="avatar-button" aria-label="Minha área">                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="3.6"></circle>
                     <path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"></path>
                 </svg>
@@ -75,7 +74,18 @@
 
                     <div class="field">
                         <label for="senha">Senha</label>
-                        <input type="password" id="senha" name="senha" placeholder="••••••••" autocomplete="current-password" required />
+                        <div class="password-wrap">
+                            <input type="password" id="senha" name="senha" placeholder="••••••••" autocomplete="current-password" required />
+                            <button type="button" class="toggle-senha" id="toggle-senha"
+                                    aria-label="Mostrar senha" aria-pressed="false">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M2.5 12C3.5 9 7 5 12 5s8.5 4 9.5 7c-1 3-4.5 7-9.5 7s-8.5-4-9.5-7z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path class="risco" d="M3 3l18 18"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="field-row">
@@ -148,6 +158,16 @@
         <p>Projeto acadêmico — desenvolvido para fins de estudo.</p>
     </div>
 </footer>
+<script>
+    const campoSenha = document.getElementById("senha");
+    const botaoSenha = document.getElementById("toggle-senha");
 
+    botaoSenha.addEventListener("click", function () {
+        const mostrar = campoSenha.type === "password";
+        campoSenha.type = mostrar ? "text" : "password";
+        botaoSenha.setAttribute("aria-pressed", mostrar);
+        botaoSenha.setAttribute("aria-label", mostrar ? "Ocultar senha" : "Mostrar senha");
+    });
+</script>
 </body>
 </html>
