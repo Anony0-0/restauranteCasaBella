@@ -1762,16 +1762,24 @@ section {
     top: 50%;
     right: 0.5rem;
     transform: translateY(-50%);
-    display: inline-flex;
+
+    display: flex;
     align-items: center;
     justify-content: center;
+
     width: 36px;
     height: 36px;
-    background: none;
-    border: none;
+    padding: 0;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+
     color: var(--color-cream-muted);
     cursor: pointer;
-    transition: color 0.2s ease;
 }
 
 .toggle-senha:hover {
@@ -1779,8 +1787,11 @@ section {
 }
 
 .toggle-senha svg {
+    display: block;
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    flex-shrink: 0;
 }
 
 .toggle-senha[aria-pressed="true"] .risco {
