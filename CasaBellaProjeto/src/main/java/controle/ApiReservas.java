@@ -57,6 +57,8 @@ public class ApiReservas extends HttpServlet {
                 }
 
                 item.add("status", nuloSeVazio(status));
+                item.add("status_pedido", nuloSeVazio(rs.getString("status_pedido")));
+                lista.add(item);
                 lista.add(item);
             }
 
@@ -74,7 +76,7 @@ public class ApiReservas extends HttpServlet {
             }
         }
     }
-    
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
