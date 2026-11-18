@@ -26,7 +26,11 @@ public class FuncionariosDao {
         st = conectado.prepareStatement("insert into funcionarios values(?,?,?,?,?,?,?)");
         st.setInt(1,id_func);
         st.setString(2, nome);
-        st.setString(3, usermobi);
+        if (usermobi == null || usermobi.trim().isEmpty()) {
+            st.setNull(3, java.sql.Types.VARCHAR);
+        } else {
+            st.setString(3, usermobi.trim());
+        }
         st.setString(4, email);
         st.setString(5, senha);
         st.setString(6, cargo);
@@ -132,7 +136,11 @@ public class FuncionariosDao {
         try (PreparedStatement ps = con.prepareStatement(
                 "UPDATE funcionarios SET nome=?, usermobi=?, email=?, cargo=?, admissao=? WHERE id_func=?")) {
             ps.setString(1, nome);
-            ps.setString(2, usermobi);
+            if (usermobi == null || usermobi.trim().isEmpty()) {
+                ps.setNull(2, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(2, usermobi.trim());
+            }
             ps.setString(3, email);
             ps.setString(4, cargo);
             if (admissao == null || admissao.trim().isEmpty()) {
