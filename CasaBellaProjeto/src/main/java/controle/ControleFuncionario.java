@@ -128,6 +128,22 @@ public class ControleFuncionario extends HttpServlet {
                 }
             }
 
+            boolean sucesso = mensagem.toLowerCase().contains("sucesso");
+
+            if (sucesso) {
+                request.setAttribute("lead", "");   // tira o texto "Agora você já pode entrar..."
+                request.setAttribute("btn1Url", "PainelGerenciamento?aba=funcionarios");
+                request.setAttribute("btn1Texto", "Ir para o gerenciamento");
+                request.setAttribute("btn2Url", "index.html");
+                request.setAttribute("btn2Texto", "Voltar ao início");
+            } else {
+                request.setAttribute("lead", "Não foi possível cadastrar. Revise os dados e tente novamente.");
+                request.setAttribute("btn1Url", "gerenciamentoAdmins/cadastroFuncionario.jsp");
+                request.setAttribute("btn1Texto", "Tentar novamente");
+                request.setAttribute("btn2Url", "PainelGerenciamento?aba=funcionarios");
+                request.setAttribute("btn2Texto", "Voltar ao gerenciamento");
+            }
+
             request.setAttribute("mens", mensagem);
             request.getRequestDispatcher("/mensagens.jsp").forward(request, response);
 

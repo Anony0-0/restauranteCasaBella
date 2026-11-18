@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @WebServlet(name = "PainelGerenciamento",urlPatterns = {"/PainelGerenciamento"})
@@ -115,4 +114,3 @@ public class PainelGerenciamento extends HttpServlet {
         }
     }
 }
-

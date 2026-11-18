@@ -41,11 +41,11 @@ public class ControleReserva extends HttpServlet {
             atualizarPeloPainel(request, response);
             return;
         } else if ("atualizarMinha".equalsIgnoreCase(origem)) {
-        atualizarMinha(request, response);
-        return;
+            atualizarMinha(request, response);
+            return;
         } else if ("cancelarMinha".equalsIgnoreCase(origem)) {
-        cancelarMinha(request, response);
-        return;
+            cancelarMinha(request, response);
+            return;
         }
 
         HttpSession sessao = request.getSession(false);
