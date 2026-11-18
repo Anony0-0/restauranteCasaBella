@@ -37,7 +37,7 @@ public class ReservasDao {
             if (rs.next()) {
                 return -2;
             }
-
+            
             st = conectado.prepareStatement(
                     "select id_mesa from mesas where capacidade >= ? " +
                             "and id_mesa not in (" +
@@ -228,7 +228,5 @@ public class ReservasDao {
         conectado.close();
         return linhas;
     }
-
-
 
 }
