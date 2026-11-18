@@ -26,6 +26,19 @@ public class ReservasDao {
             String telefone = rs.getString("telefone");
 
             st = conectado.prepareStatement(
+                    "select 1 from reservas " +
+                            "where id_cliente = ? and status not in ('Cancelada','Concluida') " +
+                            "  and horario > date_sub(?, interval 2 hour) " +
+                            "  and horario < date_add(?, interval 2 hour) limit 1");
+            st.setInt(1, id_cliente);
+            st.setTimestamp(2, horario);
+            st.setTimestamp(3, horario);
+            rs = st.executeQuery();
+            if (rs.next()) {
+                return -2;
+            }
+
+            st = conectado.prepareStatement(
                     "select id_mesa from mesas where capacidade >= ? " +
                             "and id_mesa not in (" +
                             "  select id_mesa from reservas " +
@@ -104,7 +117,10 @@ public class ReservasDao {
                 "r.horario, " +
                 "r.qtd_pessoas, " +
                 "r.id_mesa, " +
-                "r.status " +
+                "r.status, " +
+                "(SELECT p.status FROM pedidos p " +
+                "  WHERE p.id_reserva = r.id_reserva AND p.status <> 'cancelado' " +
+                "  ORDER BY p.id_pedido DESC LIMIT 1) AS status_pedido " +
                 "FROM reservas r " +
                 "LEFT JOIN clientes c ON c.id_cliente = r.id_cliente " +
                 "ORDER BY r.horario DESC";

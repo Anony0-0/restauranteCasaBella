@@ -51,6 +51,10 @@ public class ControleCliente extends HttpServlet {
             alterarSenha(request, response);
             return;
         }
+        if ("cadastrarPainel".equalsIgnoreCase(origem)) {
+            cadastrarPeloPainel(request, response);
+            return;
+        }
 
         String mensagem;
 
@@ -325,6 +329,48 @@ public class ControleCliente extends HttpServlet {
             e.printStackTrace();
             throw new ServletException(e);
         }
+    }
+
+    private void cadastrarPeloPainel(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ehFuncionario(request)) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        String nome = valor(request.getParameter("nome"));
+        String email = valor(request.getParameter("email"));
+        String senha = request.getParameter("senha");
+        String telefone = valor(request.getParameter("telefone"));
+
+        String erro = null;
+
+        if (nome.isEmpty() || email.isEmpty() || telefone.isEmpty()) {
+            erro = "Preencha todos os campos.";
+        } else if (senha == null || senha.length() < 6) {
+            erro = "A senha precisa ter ao menos 6 caracteres.";
+        } else {
+            try {
+                int resultado = new ClientesDao().cadastrarCliente(nome, email, senha, telefone);
+                if (resultado == 1) {
+                    request.getSession().setAttribute("aviso", "Cliente cadastrado com sucesso.");
+                    response.sendRedirect(request.getContextPath() + "/PainelGerenciamento?aba=clientes");
+                    return;
+                }
+                erro = "Cliente não cadastrado.";
+            } catch (ClassNotFoundException | SQLException e) {
+                if (e.getMessage() != null && e.getMessage().contains("Duplicate entry")) {
+                    erro = "Este e-mail já está cadastrado.";
+                } else {
+                    e.printStackTrace();
+                    erro = "Não foi possível cadastrar o cliente agora.";
+                }
+            }
+        }
+
+        // Com erro, volta para o formulário (o cadastroCliente.jsp já mostra o "erro")
+        request.setAttribute("erro", erro);
+        request.getRequestDispatcher("/cadastroCliente.jsp").forward(request, response);
     }
 
 

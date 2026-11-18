@@ -54,6 +54,8 @@
             && !"produtos".equals(aba) && !"funcionarios".equals(aba)) {
         aba = "pedidos"; // padrão, e também para qualquer valor estranho
     }
+    String statusAba = request.getParameter("status");
+    if (statusAba == null) statusAba = "";
 
     // ResultSets enviados pelo servlet (request.setAttribute). Se algum vier
     // null, o painel correspondente mostra "Nenhum registro".
@@ -62,6 +64,7 @@
     ResultSet reservas     = (ResultSet) request.getAttribute("reservas");
     ResultSet produtos     = (ResultSet) request.getAttribute("produtos");
     ResultSet funcionarios = (ResultSet) request.getAttribute("funcionarios");
+    ResultSet mesas = (ResultSet) request.getAttribute("mesas");
 
     boolean achou; // controla a mensagem de "tabela vazia" em cada painel
 %>
@@ -152,10 +155,14 @@
 
                 <div class="admin-panel-card">
                     <div class="admin-subtabs">
-                        <span class="is-active">Todos os pedidos</span>
-                        <span>Em preparo</span>
-                        <span>Concluídos</span>
-                        <span>Cancelados</span>
+                        <a href="<%= request.getContextPath() %>/PainelGerenciamento?aba=pedidos"
+                           class="<%= statusAba.isEmpty() ? "is-active" : "" %>">Todos os pedidos</a>
+                        <a href="<%= request.getContextPath() %>/PainelGerenciamento?aba=pedidos&status=preparo"
+                           class="<%= "preparo".equals(statusAba) ? "is-active" : "" %>">Em preparo</a>
+                        <a href="<%= request.getContextPath() %>/PainelGerenciamento?aba=pedidos&status=concluido"
+                           class="<%= "concluido".equals(statusAba) ? "is-active" : "" %>">Concluídos</a>
+                        <a href="<%= request.getContextPath() %>/PainelGerenciamento?aba=pedidos&status=cancelado"
+                           class="<%= "cancelado".equals(statusAba) ? "is-active" : "" %>">Cancelados</a>
                     </div>
 
 
@@ -177,7 +184,20 @@
                         <div class="admin-filter-field">
                         <label for="filtro-mesa">Mesa</label>
                         <select id="filtro-mesa" name="mesa">
-                        <option value="">Todas</option>
+                            <option value="">Todas</option>
+                            <%
+                                if (mesas != null) {
+                                    while (mesas.next()) {
+                                        int idMesaFiltro = mesas.getInt("id_mesa");
+                            %>
+                            <option value="<%= idMesaFiltro %>"
+                                    <%= String.valueOf(idMesaFiltro).equals(request.getParameter("mesa")) ? "selected" : "" %>>
+                                Mesa <%= idMesaFiltro %> (<%= mesas.getInt("capacidade") %> lugares)
+                            </option>
+                            <%
+                                    }
+                                }
+                            %>
                         </select>
                         </div>
 
@@ -242,7 +262,6 @@
                                 <td>
                                     <div class="admin-row-actions">
                                         <a href="<%= request.getContextPath() %>/ControlePedidos?origem=verPedido&id=<%= idPedidoLinha %>" class="chip-btn">Ver</a>
-
                                         <% if ("em preparo".equalsIgnoreCase(statusPedido)) { %>
                                         <a href="<%= request.getContextPath() %>/ControlePedidos?origem=verPedido&id=<%= idPedidoLinha %>" class="chip-btn">Editar</a>
 
@@ -296,7 +315,11 @@
                     <a href="cadastroCliente.jsp" class="btn btn-primary">Novo cliente</a>
                 </div>
 
-               <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
+                <% if (aviso != null && "clientes".equals(aba)) { %>
+                <p class="admin-aviso" role="status"><%= esc(aviso) %></p>
+                <% } %>
+
+                <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
 
                    <input type="hidden" name="aba" value="clientes" />
 

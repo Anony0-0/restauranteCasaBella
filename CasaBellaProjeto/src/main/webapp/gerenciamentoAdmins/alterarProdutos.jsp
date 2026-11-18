@@ -101,8 +101,8 @@
                             <label for="categoria">Categoria</label>
                             <select id="categoria" name="categoria" required>
                                 <%
-                                    String[] categorias = {"Massa", "Pizzas", "Risotos", "Saladas", "Sobremesas",
-                                            "Bebidas Diversas", "Vinhos", "Entradas", "Infantil"};
+                                    String[] categorias = {"Entradas", "Massa", "Pizzas", "Pizzas individuais", "Pratos principais",
+                                            "Risotos", "Saladas", "Sobremesas", "Bebidas Diversas", "Vinhos", "Infantil"};
                                     for (String c : categorias) {
                                 %>
                                 <option value="<%= c %>" <%= c.equals(produto[1]) ? "selected" : "" %>><%= c %></option>
