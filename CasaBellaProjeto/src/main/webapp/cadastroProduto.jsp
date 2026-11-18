@@ -95,14 +95,17 @@
                         <div class="field">
                             <label for="categoria">Categoria</label>
                             <select id="categoria" name="categoria" required>
-                                <option>Massa</option>
-                                <option>Pizzas</option>
-                                <option>Risotos</option>
-                                <option>Saladas</option>
-                                <option>Sobremesas</option>
-                                <option>Bebidas Diversas</option>
-                                <option>Vinhos</option>
-                                <option>Infantil</option>
+                                <option>Entradas</option>
+                                    <option>Massa</option>
+                                    <option>Pizzas</option>
+                                    <option>Pizzas individuais</option>
+                                    <option>Pratos principais</option>
+                                    <option>Risotos</option>
+                                    <option>Saladas</option>
+                                    <option>Sobremesas</option>
+                                    <option>Bebidas Diversas</option>
+                                    <option>Vinhos</option>
+                                    <option>Infantil</option>
 
                             </select>
                         </div>

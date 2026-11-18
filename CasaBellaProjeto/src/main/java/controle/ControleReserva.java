@@ -71,6 +71,8 @@ public class ControleReserva extends HttpServlet {
                     mensagem = "Reserva solicitada com sucesso";
                 } else if (resultado == 0) {
                     mensagem = "Não há mesa disponível para esse horário. Tente outro horário.";
+                } else if (resultado == -2) {
+                    mensagem = "Você já tem uma reserva próxima a esse horário. Altere ou cancele a reserva existente.";
                 } else {
                     mensagem = "Não encontramos o seu cadastro. Entre novamente na sua conta.";
                 }
@@ -115,7 +117,6 @@ public class ControleReserva extends HttpServlet {
             abrirEdicaoPeloPainel(request, response);
         } else if ("editarMinha".equalsIgnoreCase(origem)) {
             abrirEdicaoMinha(request, response);   // NOVO: cliente abre a própria reserva
-        } else if ("editar".equalsIgnoreCase(origem)) {
         } else {
             response.sendRedirect("reservas.jsp");
         }
@@ -126,6 +127,10 @@ public class ControleReserva extends HttpServlet {
             throws ServletException, IOException {
         System.out.println(">>> listarMinhasReservas foi chamado");
         HttpSession sessao = request.getSession(false);
+        if (sessao != null && "funcionario".equals(sessao.getAttribute("perfil"))) {
+            response.sendRedirect(request.getContextPath() + "/PainelGerenciamento");
+            return;
+        }
         if (sessao == null || !"cliente".equals(sessao.getAttribute("perfil"))) {
             response.sendRedirect("login.jsp");
             return;
@@ -172,8 +177,8 @@ public class ControleReserva extends HttpServlet {
                     request.getSession().setAttribute("aviso", "Reserva cadastrada com sucesso.");
                     response.sendRedirect("PainelGerenciamento?aba=reservas");
                     return;
-                } else if (resultado == 0) {
-                    erro = "Não há mesa disponível para esse horário. Tente outro horário.";
+                } else if (resultado == -2) {
+                    erro = "Esse cliente já tem uma reserva próxima a esse horário.";
                 } else {
                     erro = "Cliente não encontrado. Confira o e-mail ou cadastre o cliente antes.";
                 }

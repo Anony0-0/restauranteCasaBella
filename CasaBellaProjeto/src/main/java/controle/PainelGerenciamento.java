@@ -49,11 +49,27 @@ public class PainelGerenciamento extends HttpServlet {
             // 3. Carrega os pedidos
             PedidosDao pedidosDao = new PedidosDao();
 
+            // Filtro das abinhas (Em preparo / Concluídos / Cancelados)
+            String statusParam = request.getParameter("status");
+            String statusFiltro = null;
+            if ("preparo".equals(statusParam)) {
+                statusFiltro = "em preparo";
+            } else if ("concluido".equals(statusParam)) {
+                statusFiltro = "concluido";
+            } else if ("cancelado".equals(statusParam)) {
+                statusFiltro = "cancelado";
+            }
+
             if ("pedidos".equals(aba) && (!busca.isEmpty() || !mesa.isEmpty())) {
                 request.setAttribute("pedidos", pedidosDao.buscarPedidos(busca, mesa));
+            } else if ("pedidos".equals(aba) && statusFiltro != null) {
+                request.setAttribute("pedidos", pedidosDao.listarPedidosPorStatus(statusFiltro));
             } else {
                 request.setAttribute("pedidos", pedidosDao.listarPedidos());
             }
+
+            // Mesas para o filtro da aba Pedidos
+            request.setAttribute("mesas", pedidosDao.listarMesas());
 
             // 4. Carrega os funcionários
             FuncionariosDao funcionariosDao = new FuncionariosDao();
