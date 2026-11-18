@@ -228,6 +228,19 @@ public class ReservasDao {
         return tem;
     }
 
+    // A reserva existe e é deste cliente?
+    public boolean reservaDoCliente(int idReserva, int idCliente) throws SQLException, ClassNotFoundException {
+        conectar();
+        st = conectado.prepareStatement(
+                "SELECT 1 FROM reservas WHERE id_reserva = ? AND id_cliente = ?");
+        st.setInt(1, idReserva);
+        st.setInt(2, idCliente);
+        rs = st.executeQuery();
+        boolean dono = rs.next();
+        conectado.close();
+        return dono;
+    }
+
     // Mesa com capacidade e sem conflito (ignorando esta própria reserva).
     // A mesa atual vem primeiro, se ainda servir. Retorna 0 se não houver nenhuma.
     public int escolherMesa(int idReserva, int pessoas, Timestamp horario, int mesaAtual)
@@ -265,5 +278,7 @@ public class ReservasDao {
         conectado.close();
         return linhas;
     }
+
+
 
 }
