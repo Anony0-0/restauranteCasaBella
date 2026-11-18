@@ -2,7 +2,7 @@
 <%
     // Só cliente logado pode reservar. Os outros voltam para o login.
     if (!"cliente".equals(session.getAttribute("perfil"))) {
-        response.sendRedirect("login.html");
+        response.sendRedirect("login.jsp");
         return;
     }
 

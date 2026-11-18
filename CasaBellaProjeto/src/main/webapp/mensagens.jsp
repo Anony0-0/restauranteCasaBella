@@ -39,7 +39,7 @@
                 : "Não foi possível concluir. Revise os dados informados e tente novamente.";
     }
     if (btn1Url == null) {
-        btn1Url = "login.html";
+        btn1Url = "login.jsp";
         btn1Texto = sucesso ? "Ir para o login" : "Voltar ao login";
     }
     if (btn2Url == null) {

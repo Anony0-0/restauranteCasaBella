@@ -53,7 +53,7 @@
         </nav>
 
         <div class="admin-logout">
-            <a href="<%= base%>/src/main/webapp/login.html">Sair</a>
+            <a href="<%= base%>/src/main/webapp/login.jsp">Sair</a>
         </div>
     </aside>
 

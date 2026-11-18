@@ -13,7 +13,7 @@
     // Troque "Técnico" pelo texto exato que está na coluna cargo do banco.
     // String cargoLogado = (String) session.getAttribute("cargo");
     // if (session.getAttribute("nome") == null || !"Técnico".equals(cargoLogado)) {
-    //     response.sendRedirect("login.html");
+    //     response.sendRedirect("login.jsp");
     //     return;
     // }
 
@@ -54,7 +54,7 @@
         </nav>
 
         <div class="admin-logout">
-            <a href="login.html">Sair</a>
+            <a href="login.jsp">Sair</a>
         </div>
     </aside>
 

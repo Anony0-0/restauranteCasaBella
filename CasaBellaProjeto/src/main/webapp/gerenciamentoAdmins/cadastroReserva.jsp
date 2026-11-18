@@ -45,7 +45,7 @@
         </nav>
 
         <div class="admin-logout">
-            <a href="<%= base %>/login.html">Sair</a>
+            <a href="<%= base %>/login.jsp">Sair</a>
         </div>
     </aside>
 

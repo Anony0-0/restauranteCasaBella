@@ -13,7 +13,7 @@
 
     // Só cliente logado pode ver esta página (o ControleLogin guarda o "perfil" na sessão)
     if (!"cliente".equals(session.getAttribute("perfil"))) {
-        response.sendRedirect(ctx + "/login.html");
+        response.sendRedirect(ctx + "/login.jsp");
         return;
     }
 

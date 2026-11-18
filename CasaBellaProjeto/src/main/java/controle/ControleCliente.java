@@ -267,7 +267,7 @@ public class ControleCliente extends HttpServlet {
             int resultado = new ClientesDao().atualizar(id, nome, email, telefone, senha);
 
             if (resultado == 1) {
-                response.sendRedirect("PainelGerenciamento");
+                response.sendRedirect("PainelGerenciamento?aba=clientes");
             } else if (resultado == -1) {
                 devolverForm(request, response, id, nome, email, telefone, "Esse e-mail já está em uso por outro cliente.");
             } else {

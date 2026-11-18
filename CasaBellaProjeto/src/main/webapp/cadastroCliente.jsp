@@ -35,7 +35,7 @@
 
     <!-- ============ BARRA LATERAL ============ -->
     <aside class="admin-sidebar">
-        <a href="gerenciamento.jsp" class="admin-logo">
+        <a href="PainelGerenciamento?aba=clientes" class="admin-logo">
             <span class="brand-mark">Casa <em>Bella</em></span>
         </a>
 
@@ -44,7 +44,7 @@
         </nav>
 
         <div class="admin-logout">
-            <a href="login.html">Sair</a>
+            <a href="ControleLogin?acao=sair">Sair</a>
         </div>
     </aside>
 

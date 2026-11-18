@@ -16,7 +16,7 @@
 
        // Só cliente logado
        if (!"cliente".equals(session.getAttribute("perfil"))) {
-           response.sendRedirect(ctx + "/login.html");
+           response.sendRedirect(ctx + "/login.jsp");
            return;
        }
 
