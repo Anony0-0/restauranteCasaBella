@@ -586,7 +586,7 @@
             <section class="admin-panel" id="panel-funcionarios" aria-label="Funcionários">
                 <div class="admin-panel-header">
                     <h1>Funcionários</h1>
-                    <a href="cadastroFuncionario.jsp" class="btn btn-primary">Novo funcionário</a>
+                    <a href="gerenciamentoAdmins/cadastroFuncionario.jsp" class="btn btn-primary">Novo funcionário</a>
                 </div>
 
                 <form action="<%= request.getContextPath() %>/PainelGerenciamento" method="get" class="admin-filter-bar">
