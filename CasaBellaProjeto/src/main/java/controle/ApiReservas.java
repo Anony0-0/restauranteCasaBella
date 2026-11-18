@@ -59,7 +59,6 @@ public class ApiReservas extends HttpServlet {
                 item.add("status", nuloSeVazio(status));
                 item.add("status_pedido", nuloSeVazio(rs.getString("status_pedido")));
                 lista.add(item);
-                lista.add(item);
             }
 
             response.setContentType("application/json;charset=UTF-8");
