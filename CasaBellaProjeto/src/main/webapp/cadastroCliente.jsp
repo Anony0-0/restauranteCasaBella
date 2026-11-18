@@ -75,7 +75,7 @@
                     <% } %>
 
                     <form class="auth-form" action="ControleCliente" method="post">
-                        <input type="hidden" name="origem" value="cadastrarPainel"/>
+                        <input type="hidden" name="origem" value="cadastrar" />
 
                         <div class="field">
                             <label for="nome">Nome completo</label>

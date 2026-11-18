@@ -1221,25 +1221,18 @@ section {
     background: var(--color-bg-elevated-2);
 }
 
-.admin-subtabs span,
-.admin-subtabs a {
+.admin-subtabs span {
     display: inline-flex;
     padding: 0.65rem 1.1rem;
     border-radius: var(--radius) var(--radius) 0 0;
     font-size: var(--step--1);
     color: var(--color-cream-muted);
-    transition: color 0.2s ease;
 }
 
-.admin-subtabs span.is-active,
-.admin-subtabs a.is-active {
+.admin-subtabs span.is-active {
     background: var(--color-bg-elevated);
     color: var(--color-cream);
     font-weight: 600;
-}
-
-.admin-subtabs a:hover {
-    color: var(--color-gold-bright);
 }
 
 /* Barra de filtros/busca */
@@ -1803,23 +1796,4 @@ section {
 
 .toggle-senha[aria-pressed="true"] .risco {
     display: none;
-}
-.field select,
-.field textarea {
-    background: var(--color-bg-elevated);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius);
-    padding: 0.85rem 1rem;
-    font-family: var(--font-body);
-    font-size: var(--step-0);
-    color: var(--color-cream);
-    color-scheme: dark; /* faz a lista que abre ficar escura também */
-    transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.field select:focus,
-.field textarea:focus {
-    outline: none;
-    border-color: var(--color-gold);
-    background: var(--color-bg-elevated-2);
 }
