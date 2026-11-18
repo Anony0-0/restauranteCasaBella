@@ -94,7 +94,6 @@ public class ControleFuncionario extends HttpServlet {
 
         // ---------- CADASTRAR (o seu código, sem mudanças) ----------
         if ("cadastrar".equalsIgnoreCase(origem)) {
-            Integer id_func = Integer.parseInt(request.getParameter("id_func"));
             String nome = request.getParameter("nome");
             String usermobi = request.getParameter("usermobi");
             String email = request.getParameter("email");
@@ -103,19 +102,29 @@ public class ControleFuncionario extends HttpServlet {
             String admissao = request.getParameter("admissao");
 
             try {
+                Integer id_func = Integer.parseInt(request.getParameter("id_func"));
                 int resultado = new FuncionariosDao().cadastrarFuncionarios(
                         id_func, nome, usermobi, email, senha, cargo, admissao);
-                if (resultado == 1) {
-                    mensagem = "Funcionário cadastrado com sucesso!";
-                } else {
-                    mensagem = "Funcionário não cadastrado.";
-                }
+                mensagem = (resultado == 1)
+                        ? "Funcionário cadastrado com sucesso!"
+                        : "Funcionário não cadastrado.";
+
             } catch (ClassNotFoundException | SQLException erro) {
                 erro.printStackTrace();
-                if (erro.getMessage() != null && erro.getMessage().contains("Duplicate entry")) {
-                    mensagem = "Este e-mail já está cadastrado.";
+                String msg = erro.getMessage();
+                if (msg != null && msg.contains("Duplicate entry")) {
+                    String m = msg.toLowerCase();
+                    if (m.contains("primary")) {
+                        mensagem = "Já existe um funcionário com este Nº de ID.";
+                    } else if (m.contains("email")) {
+                        mensagem = "Este e-mail já está cadastrado.";
+                    } else if (m.contains("usermobi")) {
+                        mensagem = "Este usuário mobile já está em uso.";
+                    } else {
+                        mensagem = "Já existe um registro com esses dados.";
+                    }
                 } else {
-                    mensagem = "Erro ao cadastrar funcionário: " + erro.getMessage();
+                    mensagem = "Erro ao cadastrar funcionário: " + msg;
                 }
             }
 
