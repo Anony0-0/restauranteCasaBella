@@ -103,6 +103,43 @@ public class ReservasDao {
         return linhas;
     }
 
+    //Método para filtrar reservas
+    public ResultSet buscarReservas(String busca)
+            throws SQLException, ClassNotFoundException {
+
+        conectar();
+
+        String sql = "SELECT " +
+                "r.id_reserva, " +
+                "c.nome AS cliente, " +
+                "r.email, " +
+                "r.telefone, " +
+                "r.horario, " +
+                "r.qtd_pessoas, " +
+                "r.id_mesa, " +
+                "r.status " +
+                "FROM reservas r " +
+                "LEFT JOIN clientes c ON c.id_cliente = r.id_cliente " +
+                "WHERE c.nome LIKE ? " +
+                "OR r.email LIKE ? " +
+                "OR r.telefone LIKE ? " +
+                "OR CAST(r.id_mesa AS CHAR) LIKE ? " +
+                "ORDER BY r.horario DESC";
+
+        st = conectado.prepareStatement(sql);
+
+        String filtro = "%" + busca + "%";
+
+        st.setString(1, filtro);
+        st.setString(2, filtro);
+        st.setString(3, filtro);
+        st.setString(4, filtro);
+
+        rs = st.executeQuery();
+
+        return rs;
+    }
+
 
     // LISTAR RESERVAS
     public ResultSet listarReservas() throws SQLException, ClassNotFoundException {
