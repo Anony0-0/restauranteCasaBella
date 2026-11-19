@@ -504,7 +504,7 @@
             <section class="admin-panel" id="panel-produtos" aria-label="Produtos">
                 <div class="admin-panel-header">
                     <h1>Produtos</h1>
-                    <a href="cadastroProduto.jsp" class="btn btn-primary">Novo produto</a>
+                    <a href="<%= request.getContextPath()%>/gerenciamentoAdmins/cadastroProduto.jsp" class="btn btn-primary">Novo produto</a>
                 </div>
 
                 <% if (aviso != null && "produtos".equals(aba)) { %>
