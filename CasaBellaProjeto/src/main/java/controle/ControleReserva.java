@@ -177,6 +177,8 @@ public class ControleReserva extends HttpServlet {
                     request.getSession().setAttribute("aviso", "Reserva cadastrada com sucesso.");
                     response.sendRedirect("PainelGerenciamento?aba=reservas");
                     return;
+                } else if (resultado == 0) {
+                    erro = "Não há mesa disponível para esse horário. Tente outro horário.";
                 } else if (resultado == -2) {
                     erro = "Esse cliente já tem uma reserva próxima a esse horário.";
                 } else {

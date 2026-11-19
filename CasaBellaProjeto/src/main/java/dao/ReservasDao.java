@@ -16,15 +16,20 @@ public class ReservasDao {
             throws ClassNotFoundException, SQLException {
         conectar();
         try {
+            conectado.setAutoCommit(false);
+
+            // 1. Cliente
             st = conectado.prepareStatement("select id_cliente, telefone from clientes where email=?");
             st.setString(1, email);
             rs = st.executeQuery();
             if (!rs.next()) {
+                conectado.rollback();
                 return -1;
             }
             int id_cliente = rs.getInt("id_cliente");
             String telefone = rs.getString("telefone");
 
+            // 2. O mesmo cliente não pode ter duas reservas próximas
             st = conectado.prepareStatement(
                     "select 1 from reservas " +
                             "where id_cliente = ? and status not in ('Cancelada','Concluida') " +
@@ -35,26 +40,48 @@ public class ReservasDao {
             st.setTimestamp(3, horario);
             rs = st.executeQuery();
             if (rs.next()) {
+                conectado.rollback();
                 return -2;
             }
-            
+
+            // 3. TRAVA as mesas que servem (menor primeiro). Quem chegar junto fica esperando aqui.
             st = conectado.prepareStatement(
                     "select id_mesa from mesas where capacidade >= ? " +
-                            "and id_mesa not in (" +
-                            "  select id_mesa from reservas " +
-                            "   where id_mesa is not null and status <> 'Cancelada' " +
-                            "     and horario > date_sub(?, interval 2 hour) " +
-                            "     and horario < date_add(?, interval 2 hour)" +
-                            ") order by capacidade, id_mesa limit 1");
+                            "order by capacidade, id_mesa for update");
             st.setInt(1, pessoas);
-            st.setTimestamp(2, horario);
-            st.setTimestamp(3, horario);
             rs = st.executeQuery();
-            if (!rs.next()) {
-                return 0;
+            java.util.List<Integer> candidatas = new java.util.ArrayList<>();
+            while (rs.next()) {
+                candidatas.add(rs.getInt("id_mesa"));
             }
-            int idMesa = rs.getInt("id_mesa");
 
+            // 4. Primeira mesa candidata sem conflito de horário
+            int idMesa = 0;
+            for (int m : candidatas) {
+                PreparedStatement ps = conectado.prepareStatement(
+                        "select 1 from reservas where id_mesa = ? " +
+                                "and status not in ('Cancelada','Concluida') " +
+                                "and horario > date_sub(?, interval 2 hour) " +
+                                "and horario < date_add(?, interval 2 hour) limit 1");
+                ps.setInt(1, m);
+                ps.setTimestamp(2, horario);
+                ps.setTimestamp(3, horario);
+                ResultSet r = ps.executeQuery();
+                boolean ocupada = r.next();
+                r.close();
+                ps.close();
+                if (!ocupada) {
+                    idMesa = m;
+                    break;
+                }
+            }
+
+            if (idMesa == 0) {
+                conectado.rollback();
+                return 0; // sem mesa disponível
+            }
+
+            // 5. Insere e libera a trava
             st = conectado.prepareStatement(
                     "insert into reservas (id_cliente, telefone, email, horario, qtd_pessoas, id_mesa, status) " +
                             "values (?,?,?,?,?,?,'Pendente')");
@@ -64,7 +91,14 @@ public class ReservasDao {
             st.setTimestamp(4, horario);
             st.setInt(5, pessoas);
             st.setInt(6, idMesa);
-            return st.executeUpdate();
+            int linhas = st.executeUpdate();
+
+            conectado.commit();
+            return linhas;
+
+        } catch (SQLException e) {
+            conectado.rollback();
+            throw e;
         } finally {
             conectado.close();
         }
