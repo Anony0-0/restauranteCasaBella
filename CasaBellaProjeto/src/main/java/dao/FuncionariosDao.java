@@ -56,17 +56,20 @@ public class FuncionariosDao {
         }
     }
 
-    // Login do mobile: devolve {nome, cargo} ou null se e-mail/senha não baterem.
-    // Fecha a conexão sozinho.
-    public String[] logarMobile(String email, String senha) throws ClassNotFoundException, SQLException {
+    // Login do mobile: devolve {nome, cargo, email, usermobi} ou null se usermobi/senha não baterem.
+// Fecha a conexão sozinho.
+    public String[] logarMobile(String usermobi, String senha) throws ClassNotFoundException, SQLException {
         Connection con = ConexaoBD.conectar();
         try (PreparedStatement ps = con.prepareStatement(
-                "SELECT nome, cargo FROM funcionarios WHERE email = ? AND senha = ?")) {
-            ps.setString(1, email);
+                "SELECT nome, cargo, email, usermobi FROM funcionarios WHERE usermobi = ? AND senha = ?")) {
+            ps.setString(1, usermobi);
             ps.setString(2, senha);
             try (ResultSet r = ps.executeQuery()) {
                 if (r.next()) {
-                    return new String[]{r.getString("nome"), r.getString("cargo")};
+                    return new String[]{
+                            r.getString("nome"), r.getString("cargo"),
+                            r.getString("email"), r.getString("usermobi")
+                    };
                 }
                 return null;
             }
