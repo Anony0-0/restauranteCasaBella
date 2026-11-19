@@ -56,7 +56,7 @@ public class ControleFuncionario extends HttpServlet {
                     return;
                 }
                 request.setAttribute("funcionario", funcionario);
-                request.getRequestDispatcher("/editarFuncionario.jsp").forward(request, response);
+                request.getRequestDispatcher("/gerenciamentoAdmins/editarFuncionario.jsp").forward(request, response);
             } catch (NumberFormatException e) {
                 mostrarMensagem(request, response, "Id de funcionário inválido.");
             } catch (ClassNotFoundException | SQLException e) {
