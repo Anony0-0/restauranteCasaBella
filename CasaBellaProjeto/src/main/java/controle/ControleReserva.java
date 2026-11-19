@@ -34,7 +34,9 @@ public class ControleReserva extends HttpServlet {
         if ("cadastrarPainel".equalsIgnoreCase(origem)) {
             cadastrarPeloPainel(request, response);
             return;
-        } else if ("confirmarChegada".equalsIgnoreCase(origem) || "cancelar".equalsIgnoreCase(origem)) {
+        } else if ("confirmarChegada".equalsIgnoreCase(origem)
+                || "cancelar".equalsIgnoreCase(origem)
+                || "concluir".equalsIgnoreCase(origem)) {
             statusPeloPainel(request, response, origem);
             return;
         } else if ("atualizarPainel".equalsIgnoreCase(origem)) {
@@ -473,7 +475,7 @@ public class ControleReserva extends HttpServlet {
         return null;
     }
 
-    // Confirmar chegada ou cancelar, pelo painel
+    /// Confirmar chegada, cancelar ou concluir, pelo painel
     private void statusPeloPainel(HttpServletRequest request, HttpServletResponse response, String acao)
             throws ServletException, IOException {
         if (!ehFuncionario(request)) {
@@ -490,6 +492,12 @@ public class ControleReserva extends HttpServlet {
                 aviso = (dao.confirmarChegada(idReserva) == 1)
                         ? "Chegada confirmada."
                         : "Só reservas pendentes podem ser confirmadas.";
+
+            } else if ("concluir".equalsIgnoreCase(acao)) {
+                aviso = (dao.concluirReserva(idReserva) == 1)
+                        ? "Reserva concluída. Mesa liberada."
+                        : "Só reservas confirmadas podem ser concluídas.";
+
             } else {
                 int resultado = dao.cancelar(idReserva);
                 if (resultado == 1) {
