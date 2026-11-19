@@ -107,34 +107,95 @@ public class ReservasDao {
     // Confirma a chegada do cliente. Retorna 1 se confirmou, 0 se a reserva não estava pendente.
     public int confirmarChegada(int idReserva) throws SQLException, ClassNotFoundException {
         conectar();
-        st = conectado.prepareStatement(
-                "UPDATE reservas SET status = 'Confirmada' WHERE id_reserva = ? AND status = 'Pendente'");
-        st.setInt(1, idReserva);
-        int linhas = st.executeUpdate();
-        conectado.close();
-        return linhas;
+        try {
+            conectado.setAutoCommit(false);
+
+            st = conectado.prepareStatement(
+                    "UPDATE reservas SET status = 'Confirmada' WHERE id_reserva = ? AND status = 'Pendente'");
+            st.setInt(1, idReserva);
+            int linhas = st.executeUpdate();
+
+            if (linhas == 1) {
+                st = conectado.prepareStatement(
+                        "UPDATE mesas m JOIN reservas r ON r.id_mesa = m.id_mesa " +
+                                "SET m.reservado = 1 WHERE r.id_reserva = ?");
+                st.setInt(1, idReserva);
+                st.executeUpdate();
+            }
+
+            conectado.commit();
+            return linhas;
+        } catch (SQLException e) {
+            conectado.rollback();
+            throw e;
+        } finally {
+            conectado.close();
+        }
     }
 
+    // Confirmada -> Concluida. Retorna 1 se concluiu, 0 se a reserva não estava confirmada.
+    public int concluirReserva(int idReserva) throws SQLException, ClassNotFoundException {
+        conectar();
+        try {
+            conectado.setAutoCommit(false);
+
+            // libera a mesa antes de mudar o status (a condição depende de 'Confirmada')
+            st = conectado.prepareStatement(
+                    "UPDATE mesas m JOIN reservas r ON r.id_mesa = m.id_mesa " +
+                            "SET m.reservado = 0 WHERE r.id_reserva = ? AND r.status = 'Confirmada'");
+            st.setInt(1, idReserva);
+            st.executeUpdate();
+
+            st = conectado.prepareStatement(
+                    "UPDATE reservas SET status = 'Concluida' WHERE id_reserva = ? AND status = 'Confirmada'");
+            st.setInt(1, idReserva);
+            int linhas = st.executeUpdate();
+
+            conectado.commit();
+            return linhas;
+        } catch (SQLException e) {
+            conectado.rollback();
+            throw e;
+        } finally {
+            conectado.close();
+        }
+    }
 
     // Pendente/Confirmada -> Cancelada. Retorna 1 se cancelou, 0 se não pode cancelar,
     // -1 se já existe pedido ligado à reserva.
     public int cancelar(int idReserva) throws SQLException, ClassNotFoundException {
         conectar();
-        st = conectado.prepareStatement("SELECT 1 FROM pedidos WHERE id_reserva = ?");
-        st.setInt(1, idReserva);
-        rs = st.executeQuery();
+        try {
+            conectado.setAutoCommit(false);
 
-        if (rs.next()) {
+            st = conectado.prepareStatement("SELECT 1 FROM pedidos WHERE id_reserva = ?");
+            st.setInt(1, idReserva);
+            rs = st.executeQuery();
+            if (rs.next()) {
+                conectado.rollback();
+                return -1;
+            }
+
+            // libera a mesa (só faz efeito se a reserva estava Confirmada)
+            st = conectado.prepareStatement(
+                    "UPDATE mesas m JOIN reservas r ON r.id_mesa = m.id_mesa " +
+                            "SET m.reservado = 0 WHERE r.id_reserva = ? AND r.status = 'Confirmada'");
+            st.setInt(1, idReserva);
+            st.executeUpdate();
+
+            st = conectado.prepareStatement(
+                    "UPDATE reservas SET status = 'Cancelada' WHERE id_reserva = ? AND status IN ('Pendente','Confirmada')");
+            st.setInt(1, idReserva);
+            int linhas = st.executeUpdate();
+
+            conectado.commit();
+            return linhas;
+        } catch (SQLException e) {
+            conectado.rollback();
+            throw e;
+        } finally {
             conectado.close();
-            return -1;
         }
-
-        st = conectado.prepareStatement(
-                "UPDATE reservas SET status = 'Cancelada' WHERE id_reserva = ? AND status IN ('Pendente','Confirmada')");
-        st.setInt(1, idReserva);
-        int linhas = st.executeUpdate();
-        conectado.close();
-        return linhas;
     }
 
     //Método para filtrar reservas
@@ -302,15 +363,49 @@ public class ReservasDao {
     public int atualizarReserva(int idReserva, Timestamp horario, int pessoas, int mesa)
             throws SQLException, ClassNotFoundException {
         conectar();
-        st = conectado.prepareStatement(
-                "UPDATE reservas SET horario = ?, qtd_pessoas = ?, id_mesa = ? WHERE id_reserva = ?");
-        st.setTimestamp(1, horario);
-        st.setInt(2, pessoas);
-        st.setInt(3, mesa);
-        st.setInt(4, idReserva);
-        int linhas = st.executeUpdate();
-        conectado.close();
-        return linhas;
+        try {
+            conectado.setAutoCommit(false);
+
+            // mesa antiga e status, na mesma conexão
+            st = conectado.prepareStatement(
+                    "SELECT id_mesa, status FROM reservas WHERE id_reserva = ? FOR UPDATE");
+            st.setInt(1, idReserva);
+            rs = st.executeQuery();
+            if (!rs.next()) {
+                conectado.rollback();
+                return 0;
+            }
+            int mesaAntiga = rs.getInt("id_mesa");
+            String status = rs.getString("status");
+
+            st = conectado.prepareStatement(
+                    "UPDATE reservas SET horario = ?, qtd_pessoas = ?, id_mesa = ? WHERE id_reserva = ?");
+            st.setTimestamp(1, horario);
+            st.setInt(2, pessoas);
+            st.setInt(3, mesa);
+            st.setInt(4, idReserva);
+            int linhas = st.executeUpdate();
+
+            // Se já estava confirmada (mesa ocupada) e a mesa mudou: libera a antiga, ocupa a nova
+            if ("Confirmada".equalsIgnoreCase(status) && mesaAntiga != mesa) {
+                if (mesaAntiga != 0) {
+                    st = conectado.prepareStatement("UPDATE mesas SET reservado = 0 WHERE id_mesa = ?");
+                    st.setInt(1, mesaAntiga);
+                    st.executeUpdate();
+                }
+                st = conectado.prepareStatement("UPDATE mesas SET reservado = 1 WHERE id_mesa = ?");
+                st.setInt(1, mesa);
+                st.executeUpdate();
+            }
+
+            conectado.commit();
+            return linhas;
+        } catch (SQLException e) {
+            conectado.rollback();
+            throw e;
+        } finally {
+            conectado.close();
+        }
     }
 
 
