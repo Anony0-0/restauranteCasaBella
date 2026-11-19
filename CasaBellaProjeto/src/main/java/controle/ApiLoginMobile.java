@@ -25,21 +25,21 @@ public class ApiLoginMobile extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
-        String email = request.getParameter("email");
+        String usermobi = request.getParameter("usermobi");
         String senha = request.getParameter("senha");
 
-        if (email == null || email.trim().isEmpty() || senha == null || senha.isEmpty()) {
+        if (usermobi == null || usermobi.trim().isEmpty() || senha == null || senha.isEmpty()) {
             responder(response, HttpServletResponse.SC_BAD_REQUEST,
-                    Json.createObjectBuilder().add("erro", "Informe e-mail e senha.").build().toString());
+                    Json.createObjectBuilder().add("erro", "Informe usuário e senha.").build().toString());
             return;
         }
 
         try {
-            String[] func = new FuncionariosDao().logarMobile(email.trim(), senha);
+            String[] func = new FuncionariosDao().logarMobile(usermobi.trim(), senha);
 
             if (func == null) {
                 responder(response, HttpServletResponse.SC_UNAUTHORIZED,
-                        Json.createObjectBuilder().add("erro", "E-mail ou senha inválidos.").build().toString());
+                        Json.createObjectBuilder().add("erro", "Usuário ou senha inválidos.").build().toString());
                 return;
             }
 
@@ -47,7 +47,8 @@ public class ApiLoginMobile extends HttpServlet {
                     Json.createObjectBuilder()
                             .add("nome", func[0] == null ? "" : func[0])
                             .add("cargo", func[1] == null ? "" : func[1])
-                            .add("email", email.trim())
+                            .add("email", func[2] == null ? "" : func[2])
+                            .add("usermobi", func[3] == null ? "" : func[3])
                             .build().toString());
 
         } catch (ClassNotFoundException | SQLException e) {
