@@ -172,7 +172,6 @@ public class PedidosDao {
     public int atualizarStatus(int idPedido, String novoStatus) throws SQLException, ClassNotFoundException {
         conectar();
         try {
-            // Transação: pedido e reserva mudam juntos
             conectado.setAutoCommit(false);
 
             st = conectado.prepareStatement(
@@ -186,13 +185,25 @@ public class PedidosDao {
                 return 0;
             }
 
-            String statusReserva = novoStatus.equalsIgnoreCase("cancelado") ? "Confirmada" : "Concluida";
+            boolean cancelado = novoStatus.equalsIgnoreCase("cancelado");
+
+            // Pedido concluído: libera a mesa. No cancelamento a mesa continua ocupada.
+            // Tem que rodar ANTES de mudar o status da reserva (a condição usa 'Pedido em aberto').
+            if (!cancelado) {
+                st = conectado.prepareStatement(
+                        "UPDATE mesas m JOIN reservas r ON r.id_mesa = m.id_mesa " +
+                                "JOIN pedidos p ON p.id_reserva = r.id_reserva " +
+                                "SET m.reservado = 0 " +
+                                "WHERE p.id_pedido = ? AND r.status = 'Pedido em aberto'");
+                st.setInt(1, idPedido);
+                st.executeUpdate();
+            }
 
             st = conectado.prepareStatement(
                     "UPDATE reservas r JOIN pedidos p ON p.id_reserva = r.id_reserva " +
                             "SET r.status = ? " +
                             "WHERE p.id_pedido = ? AND r.status = 'Pedido em aberto'");
-            st.setString(1, statusReserva);
+            st.setString(1, cancelado ? "Confirmada" : "Concluida");
             st.setInt(2, idPedido);
             st.executeUpdate();
 
@@ -206,7 +217,6 @@ public class PedidosDao {
             conectado.close();
         }
     }
-
     // Mesas para o filtro do painel de pedidos
     public ResultSet listarMesas() throws SQLException, ClassNotFoundException {
         conectar();
