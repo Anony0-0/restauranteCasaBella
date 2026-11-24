@@ -28,3 +28,6 @@ Tela Login
 Tela Cadastro
 <img width="1861" height="929" alt="image" src="https://github.com/user-attachments/assets/715c81e1-4bf6-4d82-ac10-51ada7663ace" />
 
+
+Melhorias  fazer: página de log
+
