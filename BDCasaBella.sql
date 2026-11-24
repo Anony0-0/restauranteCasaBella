@@ -316,6 +316,21 @@ VALUES
 (@pedido_mariana, 61, 2, 6.00),
 (@pedido_lucas, 21, 1, 54.00);
 
+--Identificação de Produtos
+
+--1 Massas 
+--2 Pizzas 
+--3 Risotos 
+--4 saladas 
+--5 Sobremesas 
+--6 bebidas 
+--7 Vinhos 
+--8 Entradas 
+--9 Pratos prontos 
+--10 Individuais 
+--11 Infantil 
+
+
 
 -- CONSULTAS PARA CONFERENCIA
 
